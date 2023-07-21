@@ -29,25 +29,25 @@ namespace Darabonba {
     }                                                                          \
   }
 
+#define DARABONBA_PTR_SET(attr, type, value)                                   \
+  if (this->attr) {                                                            \
+    *attr = (value);                                                           \
+  } else {                                                                     \
+    attr = std::make_shared<type>((value));                                    \
+  }
+
+#define DARABONBA_PTR_GET(attr, defaultValue)                                  \
+  if (this->attr) {                                                            \
+    return *attr;                                                              \
+  }                                                                            \
+  return (defaultValue);
+
 class Model {
 public:
   virtual ~Model() {}
   virtual void validate() const = 0;
   virtual JSON toMap() const = 0;
   virtual void fromMap(const JSON &) = 0;
-
-  static void validateMaxLength(const std::string &fieldName, const JSON &map,
-                                int val);
-  static void validateMinLength(const std::string &fieldName, const JSON &map,
-                                int val);
-  template <typename T>
-  static void validateMaximum(const std::string &fieldName, const JSON &map,
-                              T val);
-  template <typename T>
-  static void validateMinimum(const std::string &fieldName, const JSON &map,
-                              T val);
-  static void validatePattern(const std::string &fieldName, const JSON &map,
-                              const std::string &val);
 };
 
 } // namespace Darabonba
