@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <darabonba/Stream.hpp>
 
 namespace Darabonba {
@@ -20,15 +21,35 @@ std::shared_ptr<IStream> Stream::readFromString(const std::string &raw) {
 void Stream::reset(std::shared_ptr<Stream> raw) {
   if (raw == nullptr)
     return;
-  auto fs = dynamic_cast<IFStream *>(raw.get());
+  auto fs = dynamic_cast<std::basic_istream<char> *>(raw.get());
   if (fs) {
     fs->seekg(0);
     return;
   }
-  auto ss = dynamic_cast<ISStream *>(raw.get());
-  if (ss) {
-    ss->seekg(0);
-    return;
-  }
 }
+
+size_t ISStream::read(char *buffer, size_t expectSize) {
+  if (std::istringstream::eof() || std::istringstream::bad())
+    return 0;
+  return std::istringstream::readsome(buffer, expectSize);
+}
+
+size_t IFStream::read(char *buffer, size_t expectSize) {
+  if (std::ifstream::eof() || std::ifstream::bad())
+    return 0;
+  auto realSize = std::ifstream::readsome(buffer, expectSize);
+  if (realSize < 0)
+    return 0;
+  else if (realSize == 0) {
+    std::ifstream::read(buffer, std::max(expectSize / 10, size_t(1)));
+    return std::ifstream::gcount();
+  }
+  return realSize;
+}
+
+size_t OSStream::write(char *buffer, size_t expectSize) {
+  std::ostringstream::write(buffer, expectSize);
+  return expectSize;
+}
+
 } // namespace Darabonba

@@ -27,10 +27,18 @@ public:
 
 class IStream : public Stream {
 public:
+  /**
+   * @brief Read the data from stream
+   * @param buffer The buffer storing data to be read.
+   * @param expectSizeThe size of the data expected to be read.
+   * @return The actual size of data read. If return 0, it indicates that the
+   * stream has been fully read.
+   */
+  virtual size_t read(char *buffer, size_t expectSize) = 0;
   virtual ~IStream() {}
 };
 
-class ISStream : public IStream, public std::istringstream {
+class ISStream : public IStream, protected std::istringstream {
 public:
   ISStream() = default;
   ISStream(std::istringstream &&obj) : std::istringstream(std::move(obj)) {}
@@ -42,9 +50,11 @@ public:
     std::istringstream::operator=(std::move(obj));
     return *this;
   }
+
+  virtual size_t read(char *buffer, size_t expectSize) override;
 };
 
-class IFStream : public IStream, public std::ifstream {
+class IFStream : public IStream, protected std::ifstream {
 public:
   IFStream() = default;
   IFStream(std::ifstream &&obj) : std::ifstream(std::move(obj)) {}
@@ -56,31 +66,24 @@ public:
     std::ifstream::operator=(std::move(obj));
     return *this;
   }
-};
 
-/**
- * @brief A custom IStream. You can inherit this class and implement the
- * pipeline stream.
- */
-class CustomIStream : public IStream {
-public:
-  virtual ~CustomIStream() {}
-  /**
-   * @param buffer The buffer that stores data on the target end.
-   * @param expectSize The data expected to be written by the target end.
-   * @return The actual size of data that written to the target end. If return
-   * 0, it indicates that the data that needs to written to the target end has
-   * been completed.
-   */
-  virtual size_t write(char *buffer, size_t expectSize) = 0;
+  virtual size_t read(char *buffer, size_t expectSize) override;
 };
 
 class OStream : public Stream {
 public:
   virtual ~OStream(){};
+  /**
+   * @brief Write the data to stream.
+   * @param buffer The buffer storing the data to be written.
+   * @param expectSize The expect size of data to be written.
+   * @return The actual size of data written. If return 0, it indicates that the
+   * stream has been fully written.
+   */
+  virtual size_t write(char *buffer, size_t expectSize) = 0;
 };
 
-class OSStream : public OStream, public std::ostringstream {
+class OSStream : public OStream, protected std::ostringstream {
 public:
   OSStream() = default;
   OSStream(std::ostringstream &&obj) : std::ostringstream(std::move(obj)) {}
@@ -92,6 +95,8 @@ public:
     std::ostringstream::operator=(std::move(obj));
     return *this;
   }
+
+  virtual size_t write(char *buffer, size_t expectSize) override;
 };
 
 class OFStream : public OStream, public std::ofstream {
@@ -106,23 +111,13 @@ public:
     std::ofstream::operator=(std::move(obj));
     return *this;
   }
+
+  virtual size_t write(char *buffer, size_t expectSize) = 0;
 };
 
-/**
- * @brief A custom OStream. You can inherit this class and implement the
- * pipeline stream.
- */
-class CustomOStream : public OStream {
+class IOStream : public IStream, public OStream {
 public:
-  virtual ~CustomOStream() {}
-  /**
-   * @param buffer The buffer that stores data on the source end.
-   * @param expectSize The data expected to be read from the source end.
-   * @return The actual size of data that read from the source end. If return
-   * 0, it indicates that the data that needs to written to the target end has
-   * been completed.
-   */
-  virtual size_t read(char *buffer, size_t expectSize) = 0;
+  virtual ~IOStream() {}
 };
 
 } // namespace Darabonba

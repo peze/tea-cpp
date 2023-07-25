@@ -90,13 +90,24 @@ private:
 
 class FileFormStream : public IStream, public std::vector<FileField> {
 public:
+  FileFormStream() = default;
+  FileFormStream(curl_mime *mime) : mime_(mime) {}
+
   virtual ~FileFormStream() { curl_mime_free(mime_); }
+
+  /**
+   * @note This is a specail IStream class whose read method is implemented by
+   * libcurl
+   */
+  virtual size_t read(char *buffer, size_t expectSize) override {
+    return expectSize;
+  }
 
   curl_mime *mime() const { return mime_; }
   void setMine(curl_mime *mine) { mime_ = mine; }
 
 protected:
-  curl_mime *mime_;
+  curl_mime *mime_ = nullptr;
 };
 } // namespace Http
 } // namespace Darabonba
