@@ -1,7 +1,7 @@
 #include <darabonba/Core.hpp>
 
 #include <chrono>
-#include <darabonba/http/Client.hpp>
+#include <darabonba/http/MCurlHttpClient.hpp>
 #include <fstream>
 #include <sstream>
 #include <thread>
@@ -15,6 +15,13 @@
 
 using std::string;
 namespace Darabonba {
+
+struct Deleter {
+  void operator()(Http::MCurlHttpClient *ptr) {
+    delete ptr;
+    curl_global_cleanup();
+  }
+};
 
 void Core::sleep(int seconds) {
   std::this_thread::sleep_for(std::chrono::seconds(seconds));
@@ -101,14 +108,16 @@ JSON Core::merge(const JSON &jf, const JSON &jb) {
   return ret;
 }
 
-std::shared_ptr<Http::Response> Core::doAction(const Http::Request &request,
-                                               const RuntimeOptions &runtime) {
-  Http::Client client;
-  return client.doAction(request, runtime);
-}
-
-std::shared_ptr<Http::Response> Core::doAction(const Http::Request &request) {
-  return doAction(request, RuntimeOptions());
+std::future<std::shared_ptr<Http::Response>>
+Core::doAction(const Http::Request &request, const RuntimeOptions &runtime) {
+  static auto client = []() {
+    curl_global_init(CURL_GLOBAL_ALL);
+    auto ret = std::unique_ptr<Http::MCurlHttpClient, Deleter>(
+        new Http::MCurlHttpClient());
+    ret->start();
+    return ret;
+  }();
+  return client->makeRequest(request, runtime);
 }
 
 } // namespace Darabonba

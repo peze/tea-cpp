@@ -18,7 +18,7 @@ public:
    * @ref https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    */
   enum StatusCode {
-    INVALID_CODE = 0,
+    INVALID_CODE = -1,
     // Informational responses
     CONTINUE = 100,
     SWITCHING_PROTOCOLS = 101,
@@ -87,7 +87,6 @@ public:
     NOT_EXTENDED = 510,
     NETWORK_AUTHENTICATION_REQUIRED = 511,
   };
-  enum { UNINITIALIZED_STATUS_CODE = -1 };
 
   Response() = default;
   virtual ~Response() = default;
@@ -101,16 +100,16 @@ public:
   const Header &header() const { return header_; }
   Header &header() { return header_; }
 
-  virtual int statusCode() const { return statusCode_; };
-  void setStatusCode(int statusCode) { statusCode_ = statusCode; }
+  long statusCode() const { return statusCode_; };
+  void setStatusCode(long statusCode) { statusCode_ = statusCode; }
 
-  virtual std::shared_ptr<OStream> body() const { return body_; };
+  virtual std::shared_ptr<IOStream> body() const { return body_; };
 
-  virtual void setBody(std::shared_ptr<OStream> body) { body_ = body; }
+  virtual void setBody(std::shared_ptr<IOStream> body) { body_ = body; }
 
 protected:
-  std::shared_ptr<OStream> body_;
-  mutable long statusCode_ = UNINITIALIZED_STATUS_CODE;
+  std::shared_ptr<IOStream> body_;
+  mutable long statusCode_ = StatusCode::INVALID_CODE;
   Header header_;
 };
 

@@ -24,14 +24,30 @@ URL::URL(const std::string &url) {
   curl_url_get(curlu, CURLUPART_QUERY, &query, 0);
   curl_url_get(curlu, CURLUPART_FRAGMENT, &fragment, 0);
 
-  scheme_ = scheme;
-  user_ = user;
-  password_ = password;
-  host_ = host;
-  path_ = path;
-  port_ = std::stoi(port);
-  query_ = Query(query);
-  fragment_ = fragment;
+  if (scheme) {
+    scheme_ = scheme;
+  }
+  if (user) {
+    user_ = user;
+  }
+  if (password) {
+    password_ = password;
+  }
+  if (host) {
+    host_ = host;
+  }
+  if (path) {
+    path_ = path;
+  }
+  if (port) {
+    port_ = std::stoi(port);
+  }
+  if (query) {
+    query_ = Query(query);
+  }
+  if (fragment) {
+    fragment_ = fragment;
+  }
 
   curl_free(scheme);
   curl_free(user);
@@ -49,17 +65,29 @@ URL::URL::operator std::string() const {
   if (url == nullptr)
     return "";
   curl_url_set(url, CURLUPART_SCHEME, scheme_.c_str(), 0);
-  curl_url_set(url, CURLUPART_USER, user_.c_str(), 0);
-  curl_url_set(url, CURLUPART_PASSWORD, password_.c_str(), 0);
+  if (!user_.empty()) {
+    curl_url_set(url, CURLUPART_USER, user_.c_str(), 0);
+  }
+  if (!password_.empty()) {
+    curl_url_set(url, CURLUPART_PASSWORD, password_.c_str(), 0);
+  }
   curl_url_set(url, CURLUPART_HOST, host_.c_str(), 0);
   curl_url_set(url, CURLUPART_PATH, path_.c_str(), 0);
-  curl_url_set(url, CURLUPART_PORT, std::to_string(port_).c_str(), 0);
-  curl_url_set(url, CURLUPART_QUERY, static_cast<std::string>(query_).c_str(),
-               0);
-  curl_url_set(url, CURLUPART_FRAGMENT, fragment_.c_str(), 0);
+  if (port_ != 0) {
+    curl_url_set(url, CURLUPART_PORT, std::to_string(port_).c_str(), 0);
+  }
+  if (!query_.empty()) {
+    curl_url_set(url, CURLUPART_QUERY, static_cast<std::string>(query_).c_str(),
+                 0);
+  }
+  if (!fragment_.empty()) {
+    curl_url_set(url, CURLUPART_FRAGMENT, fragment_.c_str(), 0);
+  }
 
   char *s = nullptr;
   curl_url_get(url, CURLUPART_URL, &s, 0);
+  if (!s)
+    return "";
   std::string ret = s;
   curl_free(s);
   curl_url_cleanup(url);

@@ -81,6 +81,7 @@ public:
     nWrite_ = obj.nWrite_;
     obj.nRead_ = obj.nWrite_ = 0;
     obj.writeIter_ = obj.data_.begin();
+    return *this;
   }
 
   virtual size_t readableSize() const override {

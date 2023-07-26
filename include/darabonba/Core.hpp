@@ -5,15 +5,16 @@
 #include <darabonba/RuntimeOptions.hpp>
 #include <darabonba/http/Request.hpp>
 #include <darabonba/http/Response.hpp>
+#include <future>
 #include <memory>
 #include <string>
 
 namespace Darabonba {
 class Core {
 public:
-  static std::shared_ptr<Http::Response>
-  doAction(const Http::Request &request, const RuntimeOptions &runtime);
-  static std::shared_ptr<Http::Response> doAction(const Http::Request &request);
+  static std::future<std::shared_ptr<Http::Response>>
+  doAction(const Http::Request &request,
+           const RuntimeOptions &runtime = RuntimeOptions());
   static bool allowRetry(const JSON &retry, int retryTimes);
   static int getBackoffTime(const JSON &backoff, int retryTimes);
   static void sleep(int seconds);
