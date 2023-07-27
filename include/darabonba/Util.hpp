@@ -28,7 +28,7 @@ public:
     std::this_thread::sleep_for(std::chrono::milliseconds(millisecond));
   }
 
-  static void validateModel(const std::shared_ptr<Model> &m) { m->validate(); }
+  static void validateModel(const Model &obj) { obj.validate(); }
 
   /************************** default **************************/
   static std::string defaultString(const std::string &real,
@@ -36,21 +36,23 @@ public:
     return real.empty() ? defaultVal : real;
   }
 
-  static int64_t defaultNumber(int64_t real, int64_t defaultVal) {
+  template <typename T> static T defaultNumber(T real, T defaultVal) {
     return real ? real : defaultVal;
   }
 
   /************************** parse **************************/
-  static std::map<std::string, std::string> stringifyMapValue(const JSON &m);
-
-  static JSON anyifyMapValue(const std::map<std::string, std::string> &m);
-
-  static JSON toMap(const std::shared_ptr<Model> &in) {
-    if (!in) {
-      return JSON();
+  static std::map<std::string, std::string> stringifyMapValue(const JSON &m) {
+    if (m.empty() || m.is_null()) {
+      return {};
     }
-    return in->toMap();
+    return m.get<std::map<std::string, std::string>>();
   }
+
+  static JSON anyifyMapValue(const std::map<std::string, std::string> &m) {
+    return m;
+  }
+
+  static JSON toMap(const Model &in) { return in.toMap(); }
 
   static std::vector<uint8_t> toBytes(const std::string &val) {
     return std::vector<uint8_t>(val.begin(), val.end());
@@ -73,11 +75,11 @@ public:
 
   static JSON parseJSON(const std::string &val) { return JSON::parse(val); }
 
-  static std::vector<uint8_t> readAsBytes(std::shared_ptr<Stream> raw);
+  static std::vector<uint8_t> readAsBytes(std::shared_ptr<IStream> raw);
 
-  static std::string readAsString(std::shared_ptr<Stream> raw);
+  static std::string readAsString(std::shared_ptr<IStream> raw);
 
-  static JSON readAsJSON(std::shared_ptr<Stream> raw);
+  static JSON readAsJSON(std::shared_ptr<IStream> raw);
 
   /************************** assert **************************/
   static bool isUnset(const JSON &value) {
@@ -100,10 +102,11 @@ public:
 
   static int64_t assertAsNumber(const JSON &value);
 
+  // todo: std::map, std::unordered_map, Daraboba::Model
   static JSON assertAsMap(const JSON &value);
 
   // todo
-  static Stream *assertAsReadable(void *value);
+  static IStream *assertAsReadable(Stream *value);
 
   static bool is2xx(const int64_t &code) { return 200 <= code && code < 300; }
 

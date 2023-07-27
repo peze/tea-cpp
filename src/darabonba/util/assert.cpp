@@ -42,14 +42,13 @@ JSON Util::assertAsMap(const JSON &value) {
   return value;
 }
 
-Stream *Util::assertAsReadable(void *value) {
-  // todo
-  try {
-    // return dynamic_cast<Stream *>(value);
-    return nullptr;
-  } catch (std::exception &err) {
+IStream *Util::assertAsReadable(Stream *value) {
+
+  auto ret = dynamic_cast<ISStream *>(value);
+  if (ret)
+    return ret;
+  else
     throw Exception("value is not a object");
-  }
 }
 
 } // namespace Darabonba

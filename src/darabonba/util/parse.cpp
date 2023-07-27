@@ -1,5 +1,5 @@
 #include <darabonba/Util.hpp>
-#include <darabonba/http/MCurlResponse.hpp>
+#include <darabonba/http/MCurlResponseBody.hpp>
 #include <darabonba/http/Query.hpp>
 #include <fstream>
 #include <memory>
@@ -12,68 +12,72 @@ using std::string;
 
 namespace Darabonba {
 
-std::vector<uint8_t> Util::readAsBytes(std::shared_ptr<Stream> raw) {
+std::vector<uint8_t> Util::readAsBytes(std::shared_ptr<IStream> raw) {
   if (raw == nullptr)
     return {};
-  auto mCurlRespBody =
-      std::dynamic_pointer_cast<Http::MCurlResponse::Body>(raw);
-  if (mCurlRespBody) {
-    string str = readAsString(mCurlRespBody);
-    return std::vector<uint8_t>(str.begin(), str.end());
-  }
-
-  // Darabonba::FStream, Darabonba::SStream
-  auto p = std::dynamic_pointer_cast<std::basic_iostream<char>>(raw);
-  if (p) {
-    auto pos = p->tellg();
-    p->seekg(0, std::ios::end);
-    auto size = p->tellg() - pos;
-    p->seekg(pos, std::ios::beg);
+  // Darabonba::IFStream, Darabonba::ISStream
+  auto basicIStream = std::dynamic_pointer_cast<std::basic_istream<char>>(raw);
+  if (basicIStream) {
+    auto pos = basicIStream->tellg();
+    basicIStream->seekg(0, std::ios::end);
+    auto size = basicIStream->tellg() - pos;
+    basicIStream->seekg(pos, std::ios::beg);
     std::vector<uint8_t> ret(size);
-    p->read(reinterpret_cast<char *>(&ret[0]), size);
+    basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
+  // Http::MCurlResponseBody
+  auto respBody = std::dynamic_pointer_cast<Http::MCurlResponseBody>(raw);
+  if (respBody) {
+    respBody->waitForDone();
+    auto size = respBody->readableSize();
+    std::vector<uint8_t> ret(size);
+    respBody->read(reinterpret_cast<char *>(&ret[0]), size);
+    return ret;
+  }
+  // todo custom IStream
   return {};
 }
 
-string Util::readAsString(std::shared_ptr<Stream> raw) {
+string Util::readAsString(std::shared_ptr<IStream> raw) {
   if (raw == nullptr)
     return "";
-  auto mCurlRespBody =
-      std::dynamic_pointer_cast<Http::MCurlResponse::Body>(raw);
-  if (mCurlRespBody) {
-    string ret;
-    while (mCurlRespBody->readFromCurl() > 0) {
-      ret += mCurlRespBody->str();
-    }
-    return ret;
-  }
-  // Darabonba::FStream, Darabonba::SStream
-  auto p = std::dynamic_pointer_cast<std::basic_iostream<char>>(raw);
-  if (p) {
-    auto pos = p->tellg();
-    p->seekg(0, std::ios::end);
-    auto size = p->tellg() - pos;
-    p->seekg(pos, std::ios::beg);
+  // Darabonba::IFStream, Darabonba::ISStream
+  auto basicIStream = std::dynamic_pointer_cast<std::basic_istream<char>>(raw);
+  if (basicIStream) {
+    auto pos = basicIStream->tellg();
+    basicIStream->seekg(0, std::ios::end);
+    auto size = basicIStream->tellg() - pos;
+    basicIStream->seekg(pos, std::ios::beg);
     string ret;
     ret.resize(size);
-    p->read(reinterpret_cast<char *>(&ret[0]), size);
+    basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
+  // Http::MCurlResponseBody
+  auto respBody = std::dynamic_pointer_cast<Http::MCurlResponseBody>(raw);
+  if (respBody) {
+    respBody->waitForDone();
+    auto size = respBody->readableSize();
+    string ret;
+    ret.resize(respBody->readableSize());
+    respBody->read(reinterpret_cast<char *>(&ret[0]), size);
+    return ret;
+  }
+  // todo custom IStream
   return "";
 }
 
-JSON Util::readAsJSON(std::shared_ptr<Stream> raw) {
+JSON Util::readAsJSON(std::shared_ptr<IStream> raw) {
   if (raw == nullptr)
     return {};
-  auto mCurlRespBody =
-      std::dynamic_pointer_cast<Http::MCurlResponse::Body>(raw);
-  if (mCurlRespBody) {
-    return JSON::parse(readAsString(raw));
+  // Darabonba::IFStream, Darabonba::ISStream
+  auto basicIStream = std::dynamic_pointer_cast<std::basic_istream<char>>(raw);
+  if (basicIStream) {
+    return JSON::parse(*basicIStream);
   }
-  // Darabonba::FStream, Darabonba::SStream
-  auto p = std::dynamic_pointer_cast<std::basic_iostream<char>>(raw);
-  return JSON::parse(*p);
+  auto str = readAsString(raw);
+  return JSON::parse(str);
 }
 
 string Util::toFormString(const JSON &val) {
@@ -83,26 +87,14 @@ string Util::toFormString(const JSON &val) {
   std::stringstream tmp;
   for (const auto &el : val.items()) {
     tmp << Http::Query::encode(el.key()) << " = "
-        << Http::Query::encode(el.value().get<string>()) << "&";
+        << Http::Query::encode(el.value().is_string()
+                                   ? el.value().get<std::string>()
+                                   : el.value().dump())
+        << "&";
   }
   string formstring = tmp.str();
   formstring.pop_back();
   return formstring;
-}
-
-JSON Util::anyifyMapValue(const map<string, string> &m) {
-  if (m.empty()) {
-    return JSON();
-  }
-  JSON data = m;
-  return data;
-}
-
-map<string, string> Util::stringifyMapValue(const JSON &m) {
-  if (m.empty() || m.is_null()) {
-    return {};
-  }
-  return m.get<map<string, string>>();
 }
 
 } // namespace Darabonba
