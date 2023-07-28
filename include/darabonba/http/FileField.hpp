@@ -21,9 +21,9 @@ class FileField : public Model {
     DARABONBA_PTR_TO_JSON(content, content_);
   }
   friend void from_json(const JSON &j, FileField &obj) {
-    DARABONBA_PTR_FROM_JSON(filename, filename_, std::string);
-    DARABONBA_PTR_FROM_JSON(contentType, contentType_, std::string);
-    DARABONBA_PTR_FROM_JSON(content, content_, std::string);
+    DARABONBA_PTR_FROM_JSON(filename, filename_);
+    DARABONBA_PTR_FROM_JSON(contentType, contentType_);
+    DARABONBA_PTR_FROM_JSON(content, content_);
   }
 
 public:
@@ -45,31 +45,19 @@ public:
 
   virtual void validate() const override {}
 
-  std::string filename() const { return filename_ ? *filename_ : ""; }
+  std::string filename() const { DARABONBA_PTR_GET(filename_, ""); }
   void setFilename(const std::string &filename) {
-    if (filename_) {
-      *filename_ = filename;
-    } else {
-      filename_ = std::make_shared<std::string>(filename);
-    }
+    DARABONBA_PTR_SET(filename_, filename);
   }
 
   std::string contentType() const { return contentType_ ? *contentType_ : ""; }
   void setContentType(const std::string &contentType) {
-    if (contentType_) {
-      *contentType_ = contentType;
-    } else {
-      contentType_ = std::make_shared<std::string>(contentType);
-    }
+    DARABONBA_PTR_SET(contentType_, contentType);
   }
 
-  std::string content() const { return content_ ? *content_ : ""; }
+  std::string content() const { DARABONBA_PTR_GET(content_, ""); }
   void setContent(const std::string &content) {
-    if (content_) {
-      *content_ = content;
-    } else {
-      content_ = std::make_shared<std::string>(content);
-    }
+    DARABONBA_PTR_SET(content_, content);
   }
 
   static std::string getBoundary() { return Core::uuid(); }

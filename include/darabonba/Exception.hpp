@@ -19,11 +19,11 @@ class Exception : public std::exception {
     // DARABONBA_TO_JSON(statusCode, statusCode_);
   }
   friend void from_json(const JSON &j, Exception &obj) {
-    DARABONBA_FROM_JSON(code, code_, std::string);
-    DARABONBA_FROM_JSON(message, message_, std::string);
-    DARABONBA_FROM_JSON(data, data_, JSON);
-    DARABONBA_FROM_JSON(description, description_, std::string);
-    DARABONBA_FROM_JSON(accessDeniedDetail, accessDeniedDetail_, JSON);
+    DARABONBA_FROM_JSON(code, code_);
+    DARABONBA_FROM_JSON(message, message_);
+    DARABONBA_FROM_JSON(data, data_);
+    DARABONBA_FROM_JSON(description, description_);
+    DARABONBA_FROM_JSON(accessDeniedDetail, accessDeniedDetail_);
     if (j.count("data") && j["data"].count("statusCode")) {
       obj.statusCode_ = j["data"]["statusCode"];
     }
