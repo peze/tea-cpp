@@ -11,16 +11,16 @@ public:
 
   virtual ~SHA256() {}
 
-  virtual std::vector<uint8_t> final() override { return final(32); }
+  virtual Bytes final() override { return final(32); }
 
   virtual SHA256 *clone() override { return new SHA256(*this); }
 
-  static std::vector<uint8_t> hash(const std::vector<uint8_t> &content) {
+  static Bytes hash(const Bytes &content) {
     SHA256 hash;
     hash.update(reinterpret_cast<const void *>(&content[0]), content.size());
     return hash.final();
   }
-  static std::vector<uint8_t> hash(const void *content, size_t contentSize) {
+  static Bytes hash(const void *content, size_t contentSize) {
     SHA256 hash;
     hash.update(content, contentSize);
     return hash.final();

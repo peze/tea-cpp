@@ -2,6 +2,7 @@
 #define DARABONBA_STREAM_H_
 
 #include <cstdint>
+#include <darabonba/Type.hpp>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -18,7 +19,7 @@ public:
   virtual ~Stream() {}
   static std::shared_ptr<IStream> readFromFilePath(const std::string &path);
 
-  static std::shared_ptr<IStream> readFromBytes(std::vector<uint8_t> &raw);
+  static std::shared_ptr<IStream> readFromBytes(Bytes &raw);
 
   static std::shared_ptr<IStream> readFromString(const std::string &raw);
 
@@ -42,6 +43,11 @@ class ISStream : public IStream, protected std::istringstream {
 public:
   ISStream() = default;
   ISStream(std::istringstream &&obj) : std::istringstream(std::move(obj)) {}
+  ISStream(const std::string &obj) : std::istringstream(obj) {}
+  ISStream(std::string &&obj) : std::istringstream(std::move(obj)) {}
+  ISStream(const Bytes &obj)
+      : std::istringstream(std::string(obj.begin(), obj.end())) {}
+
   virtual ~ISStream() {}
 
   ISStream &operator=(std::istringstream &&obj) {

@@ -38,12 +38,11 @@ public:
     return ret;
   }
 
-  static std::string hexEncode(const std::vector<uint8_t> &bytes) {
+  static std::string hexEncode(const Bytes &bytes) {
     return HexEncoder::encode(bytes.begin(), bytes.end());
   }
 
-  static std::vector<uint8_t> hash(const std::vector<uint8_t> &bytes,
-                                   const std::string &signatureAlgorithm) {
+  static Bytes hash(const Bytes &bytes, const std::string &signatureAlgorithm) {
 
     if (signatureAlgorithm.find("HMAC-SHA256") != std::string::npos ||
         signatureAlgorithm.find("RSA-SHA256") != std::string::npos) {
@@ -54,11 +53,11 @@ public:
     return {};
   }
 
-  static std::string base64EncodeToString(const std::vector<uint8_t> &bytes) {
+  static std::string base64EncodeToString(const Bytes &bytes) {
     return Base64::encode(bytes.begin(), bytes.end());
   }
 
-  static std::vector<uint8_t> base64Decode(const std::string &src) {
+  static Bytes base64Decode(const std::string &src) {
     return Base64::decode(src.begin(), src.end());
   }
 };

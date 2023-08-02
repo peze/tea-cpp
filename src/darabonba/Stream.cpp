@@ -7,7 +7,7 @@ std::shared_ptr<IStream> Stream::readFromFilePath(const std::string &path) {
       new IFStream(std::ifstream(path, std::ios::binary)));
 }
 
-std::shared_ptr<IStream> Stream::readFromBytes(std::vector<uint8_t> &raw) {
+std::shared_ptr<IStream> Stream::readFromBytes(Bytes &raw) {
   std::string s(raw.begin(), raw.end());
   auto p = new ISStream(std::istringstream(std::move(s)));
   return std::shared_ptr<IStream>(p);

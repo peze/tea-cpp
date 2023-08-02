@@ -1,8 +1,8 @@
 #ifndef DARABONBA_CORE_ERROR_H_
 #define DARABONBA_CORE_ERROR_H_
 
-#include <darabonba/JSON.hpp>
 #include <darabonba/Model.hpp>
+#include <darabonba/Type.hpp>
 #include <darabonba/http/Request.hpp>
 #include <string>
 
@@ -10,7 +10,7 @@ namespace Darabonba {
 
 class Exception : public std::exception {
 
-  friend void to_json(JSON &j, const Exception &obj) {
+  friend void to_json(Json &j, const Exception &obj) {
     DARABONBA_TO_JSON(code, code_);
     DARABONBA_TO_JSON(message, message_);
     DARABONBA_TO_JSON(data, data_);
@@ -18,7 +18,7 @@ class Exception : public std::exception {
     DARABONBA_TO_JSON(accessDeniedDetail, accessDeniedDetail_);
     // DARABONBA_TO_JSON(statusCode, statusCode_);
   }
-  friend void from_json(const JSON &j, Exception &obj) {
+  friend void from_json(const Json &j, Exception &obj) {
     DARABONBA_FROM_JSON(code, code_);
     DARABONBA_FROM_JSON(message, message_);
     DARABONBA_FROM_JSON(data, data_);
@@ -33,7 +33,7 @@ public:
   Exception() = default;
   Exception(const std::string &msg) : message_(msg) {}
   Exception(const char *msg) : message_(msg) {}
-  Exception(const JSON &errorInfo) { from_json(errorInfo, *this); }
+  Exception(const Json &errorInfo) { from_json(errorInfo, *this); }
 
   const char *what() const noexcept override { return message_.c_str(); }
 
@@ -43,8 +43,8 @@ public:
   const std::string &message() const { return message_; }
   void setMessage(const std::string &message) { message_ = message; }
 
-  const JSON &data() const { return data_; }
-  void setData(const JSON &data) { data_ = data; }
+  const Json &data() const { return data_; }
+  void setData(const Json &data) { data_ = data; }
 
   int statusCode() const { return statusCode_; }
   void setStatusCode(int statusCode) { statusCode_ = statusCode; }
@@ -54,29 +54,30 @@ public:
     description_ = description;
   }
 
-  const JSON &accessDeniedDetail() const { return accessDeniedDetail_; }
-  void setAccessDeniedDetail(const JSON &accessDeniedDetail) {
+  const Json &accessDeniedDetail() const { return accessDeniedDetail_; }
+  void setAccessDeniedDetail(const Json &accessDeniedDetail) {
     accessDeniedDetail_ = accessDeniedDetail;
   }
 
 protected:
   std::string code_;
   std::string message_;
-  JSON data_;
+  Json data_;
+  // todo
   int statusCode_;
   std::string description_;
-  JSON accessDeniedDetail_;
+  Json accessDeniedDetail_;
 };
 
 class UnretryableException : public Exception {
 public:
   UnretryableException() = default;
   UnretryableException(const Http::Request &lastRequest,
-                       const JSON &lastException)
+                       const Json &lastException)
       : lastRequest_(lastRequest), lastException_(lastException) {}
   UnretryableException(const Http::Request &lastRequest)
       : lastRequest_(lastRequest) {}
-  UnretryableException(const JSON &lastException)
+  UnretryableException(const Json &lastException)
       : lastException_(lastException) {}
 
   const Http::Request &getLastRequest() const { return lastRequest_; }
@@ -90,13 +91,13 @@ protected:
 class RetryableException : public Exception {
 public:
   RetryableException() = default;
-  RetryableException(const JSON &errorInfo) : Exception(errorInfo){};
+  RetryableException(const Json &errorInfo) : Exception(errorInfo){};
 };
 
 class ValidateException : public Exception {
 public:
   ValidateException() = default;
-  ValidateException(const JSON &errorInfo) : Exception(errorInfo){};
+  ValidateException(const Json &errorInfo) : Exception(errorInfo){};
 };
 
 } // namespace Darabonba

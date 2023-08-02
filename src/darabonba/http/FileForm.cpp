@@ -2,7 +2,7 @@
 
 namespace Darabonba {
 namespace Http {
-std::shared_ptr<Stream> FileField::toFileForm(const JSON &form,
+std::shared_ptr<Stream> FileField::toFileForm(const Json &form,
                                               const std::string &boundary) {
 
   auto p = new FileFormStream;

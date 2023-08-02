@@ -2,6 +2,7 @@
 #define DARABONBA_ENCODE_BASE64_H_
 
 #include <cstdint>
+#include <darabonba/Type.hpp>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -55,12 +56,12 @@ public:
   }
 
   template <typename ForwardIter>
-  static std::vector<uint8_t> decode(ForwardIter first, ForwardIter last) {
+  static Bytes decode(ForwardIter first, ForwardIter last) {
     auto length = std::distance(first, last);
     if (length % 4 != 0) {
       throw std::runtime_error("Invalid base64 encoded data.");
     }
-    std::vector<uint8_t> ret;
+    Bytes ret;
     ret.reserve(length / 4 * 3);
 
     decltype(ret.size()) countOfPadding = 0;

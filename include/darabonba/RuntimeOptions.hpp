@@ -1,13 +1,13 @@
 #ifndef DARABONBA_RUNTIME_OPTIONS_H_
 #define DARABONBA_RUNTIME_OPTIONS_H_
 
-#include <darabonba/JSON.hpp>
 #include <darabonba/Model.hpp>
+#include <darabonba/Type.hpp>
 
 namespace Darabonba {
 
 class RuntimeOptions : public Model {
-  friend void to_json(JSON &j, const RuntimeOptions &obj) {
+  friend void to_json(Json &j, const RuntimeOptions &obj) {
     DARABONBA_PTR_TO_JSON(autoretry, autoretry_);
     DARABONBA_PTR_TO_JSON(ignoreSSL, ignoreSSL_);
     DARABONBA_PTR_TO_JSON(key, key_);
@@ -27,7 +27,7 @@ class RuntimeOptions : public Model {
     DARABONBA_PTR_TO_JSON(socks5NetWork, socks5NetWork_);
     DARABONBA_PTR_TO_JSON(keepAlive, keepAlive_);
   }
-  friend void from_json(const JSON &j, RuntimeOptions &obj) {
+  friend void from_json(const Json &j, RuntimeOptions &obj) {
     DARABONBA_PTR_FROM_JSON(autoretry, autoretry_);
     DARABONBA_PTR_FROM_JSON(ignoreSSL, ignoreSSL_);
     DARABONBA_PTR_FROM_JSON(key, key_);
@@ -50,156 +50,236 @@ class RuntimeOptions : public Model {
 
 public:
   RuntimeOptions() = default;
-  RuntimeOptions(const JSON &map) { from_json(map, *this); }
-  ~RuntimeOptions() = default;
+  RuntimeOptions(const RuntimeOptions &) = default;
+  RuntimeOptions(RuntimeOptions &&) = default;
+  RuntimeOptions(const Darabonba::Json &obj) { from_json(obj, *this); }
 
-  virtual JSON toMap() const override {
-    JSON map;
-    to_json(map, *this);
-    return map;
-  }
-
-  virtual void fromMap(const JSON &map) override { from_json(map, *this); }
+  virtual ~RuntimeOptions() = default;
 
   virtual void validate() const override {}
 
-  bool autoretry() const { DARABONBA_PTR_GET(autoretry_, false); }
-  void setAutoretry(bool autoretry) {
-    DARABONBA_PTR_SET(autoretry_, autoretry);
+  virtual void fromMap(const Darabonba::Json &obj) override {
+    from_json(obj, *this);
+    validate();
   }
 
-  bool ignoreSSL() const { DARABONBA_PTR_GET(ignoreSSL_, false); }
-  void setIgnoreSSL(bool ignoreSSL) {
-    DARABONBA_PTR_SET(ignoreSSL_, ignoreSSL);
+  virtual Darabonba::Json toMap() const override {
+    Darabonba::Json obj;
+    to_json(obj, *this);
+    return obj;
   }
 
-  std::string key() const { DARABONBA_PTR_GET(key_, ""); }
-  void setKey(const std::string &key) { DARABONBA_PTR_SET(key_, key); }
-
-  std::string cert() const { DARABONBA_PTR_GET(cert_, ""); }
-  void setCert(const std::string &cert) { DARABONBA_PTR_SET(cert_, cert); }
-
-  std::string ca() const { DARABONBA_PTR_GET(ca_, ""); }
-  void setCa(const std::string &ca) { DARABONBA_PTR_SET(ca_, ca); }
-
-  int64_t maxAttempts() const { DARABONBA_PTR_GET(maxAttempts_, 0); }
-  void setMaxAttempts(int64_t maxAttempts) {
-    DARABONBA_PTR_SET(maxAttempts_, maxAttempts);
+  virtual bool empty() const override {
+    return autoretry_ == nullptr && backoffPeriod_ == nullptr &&
+           backoffPolicy_ == nullptr && ca_ == nullptr && cert_ == nullptr &&
+           connectTimeout_ == nullptr && httpProxy_ == nullptr &&
+           httpsProxy_ == nullptr && ignoreSSL_ == nullptr &&
+           keepAlive_ == nullptr && key_ == nullptr && localAddr_ == nullptr &&
+           maxAttempts_ == nullptr && maxIdleConns_ == nullptr &&
+           noProxy_ == nullptr && readTimeout_ == nullptr &&
+           socks5NetWork_ == nullptr && socks5Proxy_ == nullptr;
   }
 
-  std::string backoffPolicy() const { DARABONBA_PTR_GET(backoffPolicy_, ""); }
-  void setBackoffPolicy(const std::string &backoffPolicy) {
-    DARABONBA_PTR_SET(backoffPolicy_, backoffPolicy);
+  bool hasAutoretry() const { return this->autoretry_ != nullptr; }
+  bool autoretry() const { DARABONBA_PTR_GET_DEFAULT(autoretry_, 0); }
+  RuntimeOptions &setAutoretry(bool autoretry) {
+    DARABONBA_PTR_SET_VALUE(autoretry_, autoretry);
   }
 
-  int64_t backoffPeriod() const { DARABONBA_PTR_GET(backoffPeriod_, 0); }
-  void setBackoffPeriod(int64_t backoffPeriod) {
-    DARABONBA_PTR_SET(backoffPeriod_, backoffPeriod);
+  bool hasBackoffPeriod() const { return this->backoffPeriod_ != nullptr; }
+  int64_t backoffPeriod() const {
+    DARABONBA_PTR_GET_DEFAULT(backoffPeriod_, 0);
+  }
+  RuntimeOptions &setBackoffPeriod(int64_t backoffPeriod) {
+    DARABONBA_PTR_SET_VALUE(backoffPeriod_, backoffPeriod);
   }
 
-  int64_t readTimeout() const { DARABONBA_PTR_GET(readTimeout_, 0); }
-  void setReadTimeout(int64_t readTimeout) {
-    DARABONBA_PTR_SET(readTimeout_, readTimeout);
+  bool hasBackoffPolicy() const { return this->backoffPolicy_ != nullptr; }
+  std::string backoffPolicy() const {
+    DARABONBA_PTR_GET_DEFAULT(backoffPolicy_, "");
+  }
+  RuntimeOptions &setBackoffPolicy(const std::string &backoffPolicy) {
+    DARABONBA_PTR_SET_VALUE(backoffPolicy_, backoffPolicy);
+  }
+  RuntimeOptions &setBackoffPolicy(std::string &&backoffPolicy) {
+    DARABONBA_PTR_SET_RVALUE(backoffPolicy_, backoffPolicy);
   }
 
-  int64_t connectTimeout() const { DARABONBA_PTR_GET(connectTimeout_, 0); }
-  void setConnectTimeout(int64_t connectTimeout) {
-    DARABONBA_PTR_SET(connectTimeout_, connectTimeout);
+  bool hasCa() const { return this->ca_ != nullptr; }
+  std::string ca() const { DARABONBA_PTR_GET_DEFAULT(ca_, ""); }
+  RuntimeOptions &setCa(const std::string &ca) {
+    DARABONBA_PTR_SET_VALUE(ca_, ca);
+  }
+  RuntimeOptions &setCa(std::string &&ca) { DARABONBA_PTR_SET_RVALUE(ca_, ca); }
+
+  bool hasCert() const { return this->cert_ != nullptr; }
+  std::string cert() const { DARABONBA_PTR_GET_DEFAULT(cert_, ""); }
+  RuntimeOptions &setCert(const std::string &cert) {
+    DARABONBA_PTR_SET_VALUE(cert_, cert);
+  }
+  RuntimeOptions &setCert(std::string &&cert) {
+    DARABONBA_PTR_SET_RVALUE(cert_, cert);
   }
 
-  std::string httpProxy() const { DARABONBA_PTR_GET(httpProxy_, ""); }
-  void setHttpProxy(const std::string &httpProxy) {
-    DARABONBA_PTR_SET(httpProxy_, httpProxy);
+  bool hasConnectTimeout() const { return this->connectTimeout_ != nullptr; }
+  int64_t connectTimeout() const {
+    DARABONBA_PTR_GET_DEFAULT(connectTimeout_, 0);
+  }
+  RuntimeOptions &setConnectTimeout(int64_t connectTimeout) {
+    DARABONBA_PTR_SET_VALUE(connectTimeout_, connectTimeout);
   }
 
-  std::string httpsProxy() const { DARABONBA_PTR_GET(httpsProxy_, ""); }
-  void setHttpsProxy(const std::string &httpsProxy) {
-    DARABONBA_PTR_SET(httpsProxy_, httpsProxy);
+  bool hasHttpProxy() const { return this->httpProxy_ != nullptr; }
+  std::string httpProxy() const { DARABONBA_PTR_GET_DEFAULT(httpProxy_, ""); }
+  RuntimeOptions &setHttpProxy(const std::string &httpProxy) {
+    DARABONBA_PTR_SET_VALUE(httpProxy_, httpProxy);
+  }
+  RuntimeOptions &setHttpProxy(std::string &&httpProxy) {
+    DARABONBA_PTR_SET_RVALUE(httpProxy_, httpProxy);
   }
 
-  std::string noProxy() const { DARABONBA_PTR_GET(noProxy_, ""); }
-  void setNoProxy(const std::string &noProxy) {
-    DARABONBA_PTR_SET(noProxy_, noProxy);
+  bool hasHttpsProxy() const { return this->httpsProxy_ != nullptr; }
+  std::string httpsProxy() const { DARABONBA_PTR_GET_DEFAULT(httpsProxy_, ""); }
+  RuntimeOptions &setHttpsProxy(const std::string &httpsProxy) {
+    DARABONBA_PTR_SET_VALUE(httpsProxy_, httpsProxy);
+  }
+  RuntimeOptions &setHttpsProxy(std::string &&httpsProxy) {
+    DARABONBA_PTR_SET_RVALUE(httpsProxy_, httpsProxy);
   }
 
-  int64_t maxIdleConns() const { DARABONBA_PTR_GET(maxIdleConns_, 0); }
-  void setMaxIdleConns(int64_t maxIdleConns) {
-    DARABONBA_PTR_SET(maxIdleConns_, maxIdleConns);
+  bool hasIgnoreSSL() const { return this->ignoreSSL_ != nullptr; }
+  bool ignoreSSL() const { DARABONBA_PTR_GET_DEFAULT(ignoreSSL_, 0); }
+  RuntimeOptions &setIgnoreSSL(bool ignoreSSL) {
+    DARABONBA_PTR_SET_VALUE(ignoreSSL_, ignoreSSL);
   }
 
-  std::string localAddr() const { DARABONBA_PTR_GET(localAddr_, ""); }
-  void setLocalAddr(const std::string &localAddr) {
-    DARABONBA_PTR_SET(localAddr_, localAddr);
+  bool hasKeepAlive() const { return this->keepAlive_ != nullptr; }
+  bool keepAlive() const { DARABONBA_PTR_GET_DEFAULT(keepAlive_, 0); }
+  RuntimeOptions &setKeepAlive(bool keepAlive) {
+    DARABONBA_PTR_SET_VALUE(keepAlive_, keepAlive);
   }
 
-  std::string socks5Proxy() const { DARABONBA_PTR_GET(socks5Proxy_, ""); }
-  void setSocks5Proxy(const std::string &socks5Proxy) {
-    DARABONBA_PTR_SET(socks5Proxy_, socks5Proxy);
+  bool hasKey() const { return this->key_ != nullptr; }
+  std::string key() const { DARABONBA_PTR_GET_DEFAULT(key_, ""); }
+  RuntimeOptions &setKey(const std::string &key) {
+    DARABONBA_PTR_SET_VALUE(key_, key);
   }
-  std::string socks5NetWork() const { DARABONBA_PTR_GET(socks5NetWork_, ""); }
-  void setSocks5NetWork(const std::string &socks5NetWork) {
-    DARABONBA_PTR_SET(socks5NetWork_, socks5NetWork);
+  RuntimeOptions &setKey(std::string &&key) {
+    DARABONBA_PTR_SET_RVALUE(key_, key);
   }
 
-  bool keepAlive() const { DARABONBA_PTR_GET(keepAlive_, false); }
-  void setKeepAlive(bool keepAlive) {
-    DARABONBA_PTR_SET(keepAlive_, keepAlive);
+  bool hasLocalAddr() const { return this->localAddr_ != nullptr; }
+  std::string localAddr() const { DARABONBA_PTR_GET_DEFAULT(localAddr_, ""); }
+  RuntimeOptions &setLocalAddr(const std::string &localAddr) {
+    DARABONBA_PTR_SET_VALUE(localAddr_, localAddr);
+  }
+  RuntimeOptions &setLocalAddr(std::string &&localAddr) {
+    DARABONBA_PTR_SET_RVALUE(localAddr_, localAddr);
+  }
+
+  bool hasMaxAttempts() const { return this->maxAttempts_ != nullptr; }
+  int64_t maxAttempts() const { DARABONBA_PTR_GET_DEFAULT(maxAttempts_, 0); }
+  RuntimeOptions &setMaxAttempts(int64_t maxAttempts) {
+    DARABONBA_PTR_SET_VALUE(maxAttempts_, maxAttempts);
+  }
+
+  bool hasMaxIdleConns() const { return this->maxIdleConns_ != nullptr; }
+  int64_t maxIdleConns() const { DARABONBA_PTR_GET_DEFAULT(maxIdleConns_, 0); }
+  RuntimeOptions &setMaxIdleConns(int64_t maxIdleConns) {
+    DARABONBA_PTR_SET_VALUE(maxIdleConns_, maxIdleConns);
+  }
+
+  bool hasNoProxy() const { return this->noProxy_ != nullptr; }
+  std::string noProxy() const { DARABONBA_PTR_GET_DEFAULT(noProxy_, ""); }
+  RuntimeOptions &setNoProxy(const std::string &noProxy) {
+    DARABONBA_PTR_SET_VALUE(noProxy_, noProxy);
+  }
+  RuntimeOptions &setNoProxy(std::string &&noProxy) {
+    DARABONBA_PTR_SET_RVALUE(noProxy_, noProxy);
+  }
+
+  bool hasReadTimeout() const { return this->readTimeout_ != nullptr; }
+  int64_t readTimeout() const { DARABONBA_PTR_GET_DEFAULT(readTimeout_, 0); }
+  RuntimeOptions &setReadTimeout(int64_t readTimeout) {
+    DARABONBA_PTR_SET_VALUE(readTimeout_, readTimeout);
+  }
+
+  bool hasSocks5NetWork() const { return this->socks5NetWork_ != nullptr; }
+  std::string socks5NetWork() const {
+    DARABONBA_PTR_GET_DEFAULT(socks5NetWork_, "");
+  }
+  RuntimeOptions &setSocks5NetWork(const std::string &socks5NetWork) {
+    DARABONBA_PTR_SET_VALUE(socks5NetWork_, socks5NetWork);
+  }
+  RuntimeOptions &setSocks5NetWork(std::string &&socks5NetWork) {
+    DARABONBA_PTR_SET_RVALUE(socks5NetWork_, socks5NetWork);
+  }
+
+  bool hasSocks5Proxy() const { return this->socks5Proxy_ != nullptr; }
+  std::string socks5Proxy() const {
+    DARABONBA_PTR_GET_DEFAULT(socks5Proxy_, "");
+  }
+  RuntimeOptions &setSocks5Proxy(const std::string &socks5Proxy) {
+    DARABONBA_PTR_SET_VALUE(socks5Proxy_, socks5Proxy);
+  }
+  RuntimeOptions &setSocks5Proxy(std::string &&socks5Proxy) {
+    DARABONBA_PTR_SET_RVALUE(socks5Proxy_, socks5Proxy);
   }
 
 protected:
   // whether to try again
-  std::shared_ptr<bool> autoretry_;
+  std::shared_ptr<bool> autoretry_ = nullptr;
 
   // ignore SSL validation
-  std::shared_ptr<bool> ignoreSSL_;
+  std::shared_ptr<bool> ignoreSSL_ = nullptr;
 
   // privite key for client certificate
-  std::shared_ptr<std::string> key_;
+  std::shared_ptr<std::string> key_ = nullptr;
 
   // client certificate
-  std::shared_ptr<std::string> cert_;
+  std::shared_ptr<std::string> cert_ = nullptr;
 
   // server certificate
-  std::shared_ptr<std::string> ca_;
+  std::shared_ptr<std::string> ca_ = nullptr;
 
   // maximum number of retries
-  std::shared_ptr<int64_t> maxAttempts_;
+  std::shared_ptr<int64_t> maxAttempts_ = nullptr;
 
   // backoff policy
-  std::shared_ptr<std::string> backoffPolicy_;
+  std::shared_ptr<std::string> backoffPolicy_ = nullptr;
 
   // backoff period
-  std::shared_ptr<int64_t> backoffPeriod_;
+  std::shared_ptr<int64_t> backoffPeriod_ = nullptr;
 
   // read timeout
-  std::shared_ptr<int64_t> readTimeout_;
+  std::shared_ptr<int64_t> readTimeout_ = nullptr;
 
   // connect timeout
-  std::shared_ptr<int64_t> connectTimeout_;
+  std::shared_ptr<int64_t> connectTimeout_ = nullptr;
 
   // http proxy url
-  std::shared_ptr<std::string> httpProxy_;
+  std::shared_ptr<std::string> httpProxy_ = nullptr;
 
   // https Proxy url
-  std::shared_ptr<std::string> httpsProxy_;
+  std::shared_ptr<std::string> httpsProxy_ = nullptr;
 
   // agent blacklist
-  std::shared_ptr<std::string> noProxy_;
+  std::shared_ptr<std::string> noProxy_ = nullptr;
 
   // maximum number of connections
-  std::shared_ptr<int64_t> maxIdleConns_;
+  std::shared_ptr<int64_t> maxIdleConns_ = nullptr;
 
   // local addr
-  std::shared_ptr<std::string> localAddr_;
+  std::shared_ptr<std::string> localAddr_ = nullptr;
 
   // SOCKS5 proxy
-  std::shared_ptr<std::string> socks5Proxy_;
+  std::shared_ptr<std::string> socks5Proxy_ = nullptr;
 
   // SOCKS5 netWork
-  std::shared_ptr<std::string> socks5NetWork_;
+  std::shared_ptr<std::string> socks5NetWork_ = nullptr;
 
   // whether to enable keep-alive
-  std::shared_ptr<bool> keepAlive_;
+  std::shared_ptr<bool> keepAlive_ = nullptr;
 };
 
 } // namespace Darabonba

@@ -65,7 +65,7 @@ string Core::uuid() {
 #endif
 }
 
-int Core::getBackoffTime(const JSON &backoff, int retryTimes) {
+int Core::getBackoffTime(const Json &backoff, int retryTimes) {
   if (backoff.empty()) {
     return 0;
   }
@@ -89,7 +89,7 @@ int Core::getBackoffTime(const JSON &backoff, int retryTimes) {
   return backOffTime;
 }
 
-bool Core::allowRetry(const JSON &retry, int retryTimes) {
+bool Core::allowRetry(const Json &retry, int retryTimes) {
   if (retry.empty()) {
     return false;
   }
@@ -101,8 +101,8 @@ bool Core::allowRetry(const JSON &retry, int retryTimes) {
   return false;
 }
 
-JSON Core::merge(const JSON &jf, const JSON &jb) {
-  JSON ret;
+Json Core::merge(const Json &jf, const Json &jb) {
+  Json ret;
   ret.merge_patch(jf);
   ret.merge_patch(jb);
   return ret;

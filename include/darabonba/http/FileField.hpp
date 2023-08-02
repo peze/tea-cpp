@@ -14,66 +14,87 @@ namespace Darabonba {
 namespace Http {
 
 class FileField : public Model {
-
-  friend void to_json(JSON &j, const FileField &obj) {
-    DARABONBA_PTR_TO_JSON(filename, filename_);
+  friend void to_json(Darabonba::Json &j, const FileField &obj) {
     DARABONBA_PTR_TO_JSON(contentType, contentType_);
     DARABONBA_PTR_TO_JSON(content, content_);
+    DARABONBA_PTR_TO_JSON(filename, filename_);
   }
-  friend void from_json(const JSON &j, FileField &obj) {
-    DARABONBA_PTR_FROM_JSON(filename, filename_);
+
+  friend void from_json(const Darabonba::Json &j, FileField &obj) {
     DARABONBA_PTR_FROM_JSON(contentType, contentType_);
     DARABONBA_PTR_FROM_JSON(content, content_);
+    DARABONBA_PTR_FROM_JSON(filename, filename_);
   }
 
 public:
   FileField() = default;
-  ~FileField() = default;
+  FileField(const FileField &) = default;
+  FileField(FileField &&) = default;
+  FileField(const Darabonba::Json &obj) { from_json(obj, *this); }
 
-  FileField(const JSON &map) { from_json(map, *this); }
-
-  virtual JSON toMap() const override {
-    JSON map;
-    to_json(map, *this);
-    return map;
-  };
-
-  virtual void fromMap(const JSON &map) override {
-    validate();
-    from_json(map, *this);
-  }
+  virtual ~FileField() = default;
 
   virtual void validate() const override {}
 
-  std::string filename() const { DARABONBA_PTR_GET(filename_, ""); }
-  void setFilename(const std::string &filename) {
-    DARABONBA_PTR_SET(filename_, filename);
+  virtual void fromMap(const Darabonba::Json &obj) override {
+    from_json(obj, *this);
+    validate();
   }
 
-  std::string contentType() const { return contentType_ ? *contentType_ : ""; }
-  void setContentType(const std::string &contentType) {
-    DARABONBA_PTR_SET(contentType_, contentType);
+  virtual Darabonba::Json toMap() const override {
+    Darabonba::Json obj;
+    to_json(obj, *this);
+    return obj;
   }
 
-  std::string content() const { DARABONBA_PTR_GET(content_, ""); }
-  void setContent(const std::string &content) {
-    DARABONBA_PTR_SET(content_, content);
+  virtual bool empty() const override {
+    return contentType_ == nullptr && content_ == nullptr &&
+           filename_ == nullptr;
+  }
+
+  bool hasContentType() const { return this->contentType_ != nullptr; }
+  std::string contentType() const {
+    DARABONBA_PTR_GET_DEFAULT(contentType_, "");
+  }
+  FileField &setContentType(const std::string &contentType) {
+    DARABONBA_PTR_SET_VALUE(contentType_, contentType);
+  }
+  FileField &setContentType(std::string &&contentType) {
+    DARABONBA_PTR_SET_RVALUE(contentType_, contentType);
+  }
+
+  bool hasContent() const { return this->content_ != nullptr; }
+  std::string content() const { DARABONBA_PTR_GET_DEFAULT(content_, ""); }
+  FileField &setContent(const std::string &content) {
+    DARABONBA_PTR_SET_VALUE(content_, content);
+  }
+  FileField &setContent(std::string &&content) {
+    DARABONBA_PTR_SET_RVALUE(content_, content);
+  }
+
+  bool hasFilename() const { return this->filename_ != nullptr; }
+  std::string filename() const { DARABONBA_PTR_GET_DEFAULT(filename_, ""); }
+  FileField &setFilename(const std::string &filename) {
+    DARABONBA_PTR_SET_VALUE(filename_, filename);
+  }
+  FileField &setFilename(std::string &&filename) {
+    DARABONBA_PTR_SET_RVALUE(filename_, filename);
   }
 
   static std::string getBoundary() { return Core::uuid(); }
 
-  static std::shared_ptr<Stream> toFileForm(const JSON &form,
+  static std::shared_ptr<Stream> toFileForm(const Json &form,
                                             const std::string &boundary);
 
-private:
+protected:
   // the name of the file
-  std::shared_ptr<std::string> filename_;
+  std::shared_ptr<std::string> filename_ = nullptr;
 
   // the MIME of the file
-  std::shared_ptr<std::string> contentType_;
+  std::shared_ptr<std::string> contentType_ = nullptr;
 
   // the content of the file
-  std::shared_ptr<std::string> content_;
+  std::shared_ptr<std::string> content_ = nullptr;
 };
 
 class FileFormStream : public IStream, public std::vector<FileField> {

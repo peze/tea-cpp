@@ -1,13 +1,20 @@
 #ifndef DARABONBA_HTTP_HEADER_H_
 #define DARABONBA_HTTP_HEADER_H_
+#include <darabonba/Type.hpp>
 #include <initializer_list>
 #include <map>
-#include <sstream>
 #include <string>
 
 namespace Darabonba {
 namespace Http {
 class Header : public std::map<std::string, std::string> {
+  friend void to_json(Darabonba::Json &j, const Header &obj) {
+    j = std::map<std::string, std::string>(obj);
+  }
+  friend void from_json(const Darabonba::Json &j, Header &obj) {
+    obj = j.get<std::map<std::string, std::string>>();
+  }
+
 public:
   static const std::string ACCEPT_ENCODING;
   static const std::string AUTHORIZATION;
@@ -20,8 +27,9 @@ public:
   static const std::string REFERER;
   static const std::string TRANSFER_ENCODING;
   static const std::string USER_AGENT;
-
   Header() = default;
+  Header(const Header &) = default;
+  Header(Header &&) = default;
   Header(const std::map<std::string, std::string> &obj)
       : std::map<std::string, std::string>(obj) {}
   Header(std::map<std::string, std::string> &&obj)
@@ -29,12 +37,16 @@ public:
   Header(std::initializer_list<std::pair<std::string, std::string>> list)
       : std::map<std::string, std::string>(list.begin(), list.end()) {}
 
+  Header &operator=(const Header &) = default;
+  Header &operator=(Header &&) = default;
+  using std::map<std::string, std::string>::operator=;
+
   operator std::string() const {
-    std::stringstream ss;
+    std::string ret;
     for (const auto &p : *this) {
-      ss << p.first << ": " << p.second << "\r\n";
+      ret += p.first + ": " + p.second + "\r\n";
     }
-    return ss.str();
+    return ret;
   }
 };
 

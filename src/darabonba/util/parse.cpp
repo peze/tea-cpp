@@ -12,7 +12,7 @@ using std::string;
 
 namespace Darabonba {
 
-std::vector<uint8_t> Util::readAsBytes(std::shared_ptr<IStream> raw) {
+Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
   if (raw == nullptr)
     return {};
   // Darabonba::IFStream, Darabonba::ISStream
@@ -22,7 +22,7 @@ std::vector<uint8_t> Util::readAsBytes(std::shared_ptr<IStream> raw) {
     basicIStream->seekg(0, std::ios::end);
     auto size = basicIStream->tellg() - pos;
     basicIStream->seekg(pos, std::ios::beg);
-    std::vector<uint8_t> ret(size);
+    Bytes ret(size);
     basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
@@ -31,7 +31,7 @@ std::vector<uint8_t> Util::readAsBytes(std::shared_ptr<IStream> raw) {
   if (respBody) {
     respBody->waitForDone();
     auto size = respBody->readableSize();
-    std::vector<uint8_t> ret(size);
+    Bytes ret(size);
     respBody->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
@@ -68,19 +68,19 @@ string Util::readAsString(std::shared_ptr<IStream> raw) {
   return "";
 }
 
-JSON Util::readAsJSON(std::shared_ptr<IStream> raw) {
+Json Util::readAsJSON(std::shared_ptr<IStream> raw) {
   if (raw == nullptr)
     return {};
   // Darabonba::IFStream, Darabonba::ISStream
   auto basicIStream = std::dynamic_pointer_cast<std::basic_istream<char>>(raw);
   if (basicIStream) {
-    return JSON::parse(*basicIStream);
+    return Json::parse(*basicIStream);
   }
   auto str = readAsString(raw);
-  return JSON::parse(str);
+  return Json::parse(str);
 }
 
-string Util::toFormString(const JSON &val) {
+string Util::toFormString(const Json &val) {
   if (val.empty() || val.is_null()) {
     return "";
   }

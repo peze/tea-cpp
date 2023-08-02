@@ -2,6 +2,7 @@
 #define DARABONBA_ENCODE_HASH_H_
 
 #include <cstdint>
+#include <darabonba/Type.hpp>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <vector>
@@ -31,7 +32,7 @@ public:
 
   virtual ~Hash() { EVP_MD_CTX_free(ctx_); }
 
-  virtual std::vector<uint8_t> final() = 0;
+  virtual Bytes final() = 0;
 
   virtual void update(const void *data, size_t bytes) {
     EVP_DigestUpdate(ctx_, data, bytes);
@@ -40,8 +41,10 @@ public:
   virtual Hash *clone() = 0;
 
 protected:
-  std::vector<uint8_t> final(unsigned int len) {
-    std::vector<uint8_t> hash(len);
+  Bytes final(unsigned int len) {
+    Bytes hash = {};
+    hash.resize(len);
+    // Bytes hash(len);
     EVP_DigestFinal_ex(
         ctx_,
         reinterpret_cast<unsigned char *>(const_cast<uint8_t *>(&hash[0])),

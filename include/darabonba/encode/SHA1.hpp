@@ -9,16 +9,16 @@ public:
   SHA1() : Hash(EVP_sha1()) {}
   virtual ~SHA1() {}
 
-  virtual std::vector<uint8_t> final() { return final(20); }
+  virtual Bytes final() { return final(20); }
 
   virtual SHA1 *clone() override { return new SHA1(*this); }
 
-  static std::vector<uint8_t> hash(const std::vector<uint8_t> &content) {
+  static Bytes hash(const Bytes &content) {
     SHA1 hash;
     hash.update(reinterpret_cast<const void *>(&content[0]), content.size());
     return hash.final();
   }
-  static std::vector<uint8_t> hash(const void *content, size_t contentSize) {
+  static Bytes hash(const void *content, size_t contentSize) {
     SHA1 hash;
     hash.update(content, contentSize);
     return hash.final();

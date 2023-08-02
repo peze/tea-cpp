@@ -74,7 +74,7 @@ public:
     EVP_PKEY_free(pkey_);
   }
 
-  virtual std::vector<uint8_t> final() {
+  virtual Bytes final() {
     auto md = hash_->final();
     size_t resLen;
     if (EVP_PKEY_sign(ctx_, nullptr, &resLen,
@@ -82,7 +82,7 @@ public:
                       md.size()) <= 0) {
       return {};
     }
-    std::vector<uint8_t> ret(resLen);
+    Bytes ret(resLen);
     if (EVP_PKEY_sign(ctx_, reinterpret_cast<unsigned char *>(&ret[0]), &resLen,
                       reinterpret_cast<const unsigned char *>(&md[0]),
                       md.size()) <= 0) {
@@ -95,9 +95,8 @@ public:
     hash_->update(data, bytes);
   }
 
-  static std::vector<uint8_t> sign(const void *content, size_t contentSize,
-                                   const void *key, size_t keyLen,
-                                   std::unique_ptr<Encode::Hash> hash) {
+  static Bytes sign(const void *content, size_t contentSize, const void *key,
+                    size_t keyLen, std::unique_ptr<Encode::Hash> hash) {
     RSASigner signer(key, keyLen, std::move(hash));
     signer.update(content, contentSize);
     return signer.final();

@@ -8,7 +8,7 @@ namespace Darabonba {
 namespace Signature {
 class Hmac {
 public:
-  Hmac(const EVP_MD *type, const std::vector<uint8_t> &key)
+  Hmac(const EVP_MD *type, const Bytes &key)
       : Hmac(type, reinterpret_cast<const void *>(&key[0]), key.size()) {}
   Hmac(const EVP_MD *type, const void *key, size_t keyLen)
       : pkey_(EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, nullptr,
@@ -24,7 +24,7 @@ public:
   Hmac &operator=(const Hmac &) = delete;
   Hmac &operator=(Hmac &&) = delete;
 
-  virtual std::vector<uint8_t> final() = 0;
+  virtual Bytes final() = 0;
 
   virtual void update(const void *data, size_t bytes) {
     EVP_DigestSignUpdate(ctx_, data, bytes);
@@ -36,8 +36,8 @@ public:
   }
 
 protected:
-  std::vector<uint8_t> final(size_t len) {
-    std::vector<uint8_t> hash(len);
+  Bytes final(size_t len) {
+    Bytes hash(len);
     EVP_DigestSignFinal(ctx_, reinterpret_cast<unsigned char *>(&hash[0]),
                         &len);
     return hash;

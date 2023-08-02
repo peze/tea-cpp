@@ -12,73 +12,69 @@ namespace Darabonba {
 namespace Signature {
 class Signer {
 public:
-  static std::vector<uint8_t> HmacSHA1Sign(const std::string &stringToSign,
-                                           const std::string &secret) {
+  static Bytes HmacSHA1Sign(const std::string &stringToSign,
+                            const std::string &secret) {
     return HmacSHA1::sign(reinterpret_cast<const void *>(stringToSign.c_str()),
                           stringToSign.size(),
                           reinterpret_cast<const void *>(secret.c_str()),
                           secret.size());
   }
 
-  static std::vector<uint8_t>
-  HmacSHA1SignByBytes(const std::string &stringToSign,
-                      const std::vector<uint8_t> &secret) {
+  static Bytes HmacSHA1SignByBytes(const std::string &stringToSign,
+                                   const Bytes &secret) {
     return HmacSHA1::sign(reinterpret_cast<const void *>(stringToSign.c_str()),
                           stringToSign.size(),
                           reinterpret_cast<const void *>(&secret[0]),
                           secret.size());
   }
 
-  static std::vector<uint8_t> HmacSHA256Sign(const std::string &stringToSign,
-                                             const std::string &secret) {
+  static Bytes HmacSHA256Sign(const std::string &stringToSign,
+                              const std::string &secret) {
     return HmacSHA256::sign(
         reinterpret_cast<const void *>(stringToSign.c_str()),
         stringToSign.size(), reinterpret_cast<const void *>(secret.c_str()),
         secret.size());
   }
 
-  static std::vector<uint8_t>
-  HmacSHA256SignByBytes(const std::string &stringToSign,
-                        const std::vector<uint8_t> &secret) {
+  static Bytes HmacSHA256SignByBytes(const std::string &stringToSign,
+                                     const Bytes &secret) {
     return HmacSHA256::sign(
         reinterpret_cast<const void *>(stringToSign.c_str()),
         stringToSign.size(), reinterpret_cast<const void *>(&secret[0]),
         secret.size());
   }
 
-  static std::vector<uint8_t> HmacSM3Sign(const std::string &stringToSign,
-                                          const std::string &secret) {
+  static Bytes HmacSM3Sign(const std::string &stringToSign,
+                           const std::string &secret) {
     return HmacSM3::sign(reinterpret_cast<const void *>(stringToSign.c_str()),
                          stringToSign.size(),
                          reinterpret_cast<const void *>(secret.c_str()),
                          secret.size());
   }
 
-  static std::vector<uint8_t>
-  HmacSM3SignByBytes(const std::string &stringToSign,
-                     const std::vector<uint8_t> &secret) {
+  static Bytes HmacSM3SignByBytes(const std::string &stringToSign,
+                                  const Bytes &secret) {
     return HmacSM3::sign(reinterpret_cast<const void *>(stringToSign.c_str()),
                          stringToSign.size(),
                          reinterpret_cast<const void *>(&secret[0]),
                          secret.size());
   }
 
-  static std::vector<uint8_t> SHA256withRSASign(const std::string &stringToSign,
-                                                const std::string &secret) {
+  static Bytes SHA256withRSASign(const std::string &stringToSign,
+                                 const std::string &secret) {
     return HmacSM3::sign(reinterpret_cast<const void *>(stringToSign.c_str()),
                          stringToSign.size(),
                          reinterpret_cast<const void *>(&secret[0]),
                          secret.size());
   }
 
-  static std::vector<uint8_t> MD5Sign(const std::string &stringToSign) {
+  static Bytes MD5Sign(const std::string &stringToSign) {
     return Encode::MD5::hash(
         reinterpret_cast<const void *>(stringToSign.c_str()),
         stringToSign.size());
   }
 
-  static std::vector<uint8_t>
-  MD5SignForBytes(const std::vector<uint8_t> &bytesToSign) {
+  static Bytes MD5SignForBytes(const Bytes &bytesToSign) {
     return Encode::MD5::hash(reinterpret_cast<const void *>(&bytesToSign[0]),
                              bytesToSign.size());
   }
