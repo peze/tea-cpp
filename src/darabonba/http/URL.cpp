@@ -37,7 +37,7 @@ URL::URL(const std::string &url) {
     host_ = host;
   }
   if (path) {
-    path_ = path;
+    pathName_ = path;
   }
   if (port) {
     port_ = std::stoi(port);
@@ -72,8 +72,8 @@ URL::URL::operator std::string() const {
     curl_url_set(url, CURLUPART_PASSWORD, password_.c_str(), 0);
   }
   curl_url_set(url, CURLUPART_HOST, host_.c_str(), 0);
-  curl_url_set(url, CURLUPART_PATH, path_.c_str(), 0);
-  if (port_ != 0) {
+  curl_url_set(url, CURLUPART_PATH, pathName_.c_str(), 0);
+  if (port_ != INVALID_PORT) {
     curl_url_set(url, CURLUPART_PORT, std::to_string(port_).c_str(), 0);
   }
   if (!query_.empty()) {
@@ -97,8 +97,8 @@ URL::URL::operator std::string() const {
 bool URL::operator==(const URL &url) const {
   return scheme_ == url.scheme_ && user_ == url.user_ &&
          password_ == url.password_ && host_ == url.host_ &&
-         path_ == url.path_ && port_ == url.port_ && query_ == url.query_ &&
-         fragment_ == url.fragment_;
+         pathName_ == url.pathName_ && port_ == url.port_ &&
+         query_ == url.query_ && fragment_ == url.fragment_;
 }
 
 void URL::clear() {
@@ -106,20 +106,20 @@ void URL::clear() {
   user_.clear();
   password_.clear();
   host_.clear();
-  path_.clear();
+  pathName_.clear();
   port_ = INVALID_PORT;
   query_.clear();
   fragment_.clear();
 }
 
-bool URL::isEmpty() const {
+bool URL::empty() const {
   return scheme_.empty() && user_.empty() && password_.empty() &&
-         host_.empty() && path_.empty() && (port_ == INVALID_PORT) &&
+         host_.empty() && pathName_.empty() && (port_ == INVALID_PORT) &&
          query_.empty() && fragment_.empty();
 }
 
 bool URL::isValid() const {
-  if (isEmpty())
+  if (empty())
     return false;
 
   if (host_.empty())
@@ -145,19 +145,19 @@ std::string URL::authority() const {
   return out.str();
 }
 
-void URL::setAuthority(const std::string &authority) {
+URL &URL::setAuthority(const std::string &authority) {
   if (authority.empty()) {
     setUserInfo("");
     setHost("");
     setPort(INVALID_PORT);
-    return;
+    return *this;
   }
 
   std::string userinfo, host, port;
   std::string::size_type pos = 0, prevpos = 0;
 
   pos = authority.find('@');
-  if (pos != authority.npos) {
+  if (pos != std::string::npos) {
     userinfo = authority.substr(0, pos);
     prevpos = pos + 1;
   } else {
@@ -165,7 +165,7 @@ void URL::setAuthority(const std::string &authority) {
   }
 
   pos = authority.find(':', prevpos);
-  if (pos == authority.npos) {
+  if (pos == std::string::npos) {
     host = authority.substr(prevpos);
   } else {
     host = authority.substr(prevpos, pos - prevpos);
@@ -174,35 +174,39 @@ void URL::setAuthority(const std::string &authority) {
 
   setUserInfo(userinfo);
   setHost(host);
-  setPort(!port.empty() ? atoi(port.c_str()) : INVALID_PORT);
+  setPort(!port.empty() ? std::stoi(port) : INVALID_PORT);
+  return *this;
 }
 
-void URL::setHost(const std::string &host) {
+URL &URL::setHost(const std::string &host) {
   host_ = host;
   std::transform(host_.begin(), host_.end(), host_.begin(),
                  [](char c) { return std::tolower(c); });
+  return *this;
 }
 
-void URL::setScheme(const std::string &scheme) {
+URL &URL::setScheme(const std::string &scheme) {
   scheme_ = scheme;
   std::transform(scheme_.begin(), scheme_.end(), scheme_.begin(),
                  [](char c) { return std::tolower(c); });
+  return *this;
 }
 
-void URL::setUserInfo(const std::string &userInfo) {
+URL &URL::setUserInfo(const std::string &userInfo) {
   if (userInfo.empty()) {
     user_.clear();
     password_.clear();
-    return;
+    return *this;
   }
 
   auto pos = userInfo.find(':');
-  if (pos == userInfo.npos) {
+  if (pos == std::string::npos) {
     user_ = userInfo;
   } else {
     user_ = userInfo.substr(0, pos);
     password_ = userInfo.substr(pos + 1);
   }
+  return *this;
 }
 
 std::string URL::userInfo() const {

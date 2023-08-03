@@ -42,11 +42,23 @@ public:
 class ISStream : public IStream, protected std::istringstream {
 public:
   ISStream() = default;
+  // ISStream(ISStream &&) = default;
   ISStream(std::istringstream &&obj) : std::istringstream(std::move(obj)) {}
   ISStream(const std::string &obj) : std::istringstream(obj) {}
   ISStream(std::string &&obj) : std::istringstream(std::move(obj)) {}
   ISStream(const Bytes &obj)
       : std::istringstream(std::string(obj.begin(), obj.end())) {}
+  ISStream(const Darabonba::Json &obj) {
+    if (obj.is_string()) {
+      std::istringstream::operator=(std::istringstream(obj.get<std::string>()));
+    } else if (obj.is_binary()) {
+      const auto &bytes = obj.get<Darabonba::Bytes>();
+      std::istringstream::operator=(
+          std::istringstream(std::string(bytes.begin(), bytes.end())));
+    } else {
+      std::istringstream::operator=(std::istringstream(obj.dump()));
+    }
+  }
 
   virtual ~ISStream() {}
 
@@ -64,6 +76,7 @@ class IFStream : public IStream, protected std::ifstream {
 public:
   IFStream() = default;
   IFStream(std::ifstream &&obj) : std::ifstream(std::move(obj)) {}
+
   virtual ~IFStream() {}
 
   IFStream &operator=(std::ifstream &&obj) {

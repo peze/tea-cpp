@@ -18,7 +18,7 @@ public:
     EVP_DigestSignInit(ctx_, nullptr, type, nullptr, pkey_);
   }
 
-  // todo: copy ctor and so on.
+  // TODO:: copy ctor and so on.
   Hmac(const Hmac &) = delete;
   Hmac(Hmac &&) = delete;
   Hmac &operator=(const Hmac &) = delete;
@@ -37,7 +37,8 @@ public:
 
 protected:
   Bytes final(size_t len) {
-    Bytes hash(len);
+    Bytes hash;
+    hash.resize(len);
     EVP_DigestSignFinal(ctx_, reinterpret_cast<unsigned char *>(&hash[0]),
                         &len);
     return hash;

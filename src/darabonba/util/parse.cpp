@@ -1,5 +1,5 @@
 #include <darabonba/Util.hpp>
-#include <darabonba/http/MCurlResponseBody.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <darabonba/http/Query.hpp>
 #include <fstream>
 #include <memory>
@@ -22,7 +22,8 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
     basicIStream->seekg(0, std::ios::end);
     auto size = basicIStream->tellg() - pos;
     basicIStream->seekg(pos, std::ios::beg);
-    Bytes ret(size);
+    Bytes ret;
+    ret.resize(size);
     basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
@@ -31,11 +32,12 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
   if (respBody) {
     respBody->waitForDone();
     auto size = respBody->readableSize();
-    Bytes ret(size);
+    Bytes ret;
+    ret.resize(size);
     respBody->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
-  // todo custom IStream
+  // TODO: custom IStream
   return {};
 }
 
@@ -64,7 +66,7 @@ string Util::readAsString(std::shared_ptr<IStream> raw) {
     respBody->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
-  // todo custom IStream
+  // TODO: custom IStream
   return "";
 }
 

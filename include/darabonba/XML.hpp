@@ -2,7 +2,7 @@
 #define DARABONBA_XML_H_
 
 #include <darabonba/Type.hpp>
-#include <darabonba/http/Response.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -12,7 +12,7 @@ namespace Darabonba {
 class XML {
 public:
   static Json parseXml(const std::string &body,
-                       const Http::Response *resp = nullptr);
+                       const Http::MCurlResponse *resp = nullptr);
 
   static std::string toXML(const Json &body);
 

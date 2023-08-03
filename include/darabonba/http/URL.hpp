@@ -33,36 +33,59 @@ public:
     auto it = query_.find(name);
     return (it != query_.end()) ? it->second : "";
   }
+  URL &setQuery(const Query &query) {
+    query_ = query;
+    return *this;
+  }
+  URL &setQuery(Query &&query) {
+    query_ = std::move(query);
+    return *this;
+  }
 
   const std::string &host() const { return host_; }
-  void setHost(const std::string &host);
+  URL &setHost(const std::string &host);
 
   void clear();
-  bool isEmpty() const;
+  bool empty() const;
   bool isValid() const;
 
   uint16_t port() const { return port_; }
-  void setPort(uint16_t port) { port_ = port; }
+  URL &setPort(uint16_t port) {
+    port_ = port;
+    return *this;
+  }
 
   const std::string &user() const { return user_; }
-  void setUser(const std::string &user) { user_ = user; }
+  URL &setUser(const std::string &user) {
+    user_ = user;
+    return *this;
+  }
   const std::string &password() const { return password_; }
-  void setPassword(const std::string &password) { password_ = password; }
+  URL &setPassword(const std::string &password) {
+    password_ = password;
+    return *this;
+  }
   std::string userInfo() const;
-  void setUserInfo(const std::string &userInfo);
+  URL &setUserInfo(const std::string &userInfo);
 
-  const std::string &path() const { return path_; }
-  void setPath(const std::string &path) { path_ = path; }
+  const std::string &pathName() const { return pathName_; }
+  URL &setPathName(const std::string &path) {
+    pathName_ = path;
+    return *this;
+  }
 
   const std::string &scheme() const { return scheme_; }
-  void setScheme(const std::string &scheme);
+  URL &setScheme(const std::string &scheme);
 
   std::string authority() const;
-  void setAuthority(const std::string &authority);
+  URL &setAuthority(const std::string &authority);
 
   const std::string &fragment() const { return fragment_; }
   bool hasFragment() const { return !fragment_.empty(); }
-  void setFragment(const std::string &fragment) { fragment_ = fragment; }
+  URL &setFragment(const std::string &fragment) {
+    fragment_ = fragment;
+    return *this;
+  }
 
 protected:
   enum { INVALID_PORT = 0 };
@@ -71,7 +94,7 @@ protected:
   std::string user_;
   std::string password_;
   std::string host_;
-  std::string path_;
+  std::string pathName_;
   uint16_t port_ = 0;
   Query query_;
   std::string fragment_;

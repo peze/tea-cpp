@@ -1,14 +1,20 @@
-#ifndef DARABONBA_HTTP_MCURLRESPINSEBODY_H_
-#define DARABONBA_HTTP_MCURLRESPINSEBODY_H_
-
+#ifndef DARABONBA_HTTP_MCULRESPONSE_H_
+#define DARABONBA_HTTP_MCULRESPONSE_H_
 #include <atomic>
 #include <condition_variable>
+#include <curl/curl.h>
 #include <darabonba/Stream.hpp>
 #include <darabonba/buffer/ContiguousBuffer.hpp>
 #include <darabonba/buffer/RingBuffer.hpp>
-#include <darabonba/http/Response.hpp>
+#include <darabonba/http/Curl.hpp>
+#include <darabonba/http/Header.hpp>
+#include <darabonba/http/ResponseBase.hpp>
 #include <darabonba/lock/SpinLock.hpp>
+#include <map>
+#include <memory>
 #include <numeric>
+#include <sstream>
+#include <string>
 
 namespace Darabonba {
 namespace Http {
@@ -71,10 +77,10 @@ protected:
 
   std::atomic<size_t> readableSize_ = {0};
 
-  // 用于等待流读写
+  // TODO: 用于等待流读写
   std::condition_variable streamCV_;
 
-  // 暂时使用 ss 来表示，后面使用 ringbuffer 来降低
+  // TODO: 暂时使用 ss 来表示，后面使用 ringbuffer 来降低
   Lock::SpinLock bufferlock_;
   // std::stringstream buffer_;
   Buffer::RingBuffer buffer_;
@@ -82,7 +88,31 @@ protected:
   MCurlHttpClient *client_ = nullptr;
   CURL *easyHandle_ = nullptr;
 };
+
+class MCurlResponse : public ResponseBase {
+public:
+  MCurlResponse() = default;
+  virtual ~MCurlResponse() = default;
+
+  MCurlResponse &setHeader(const Header &header) {
+    header_ = header;
+    return *this;
+  }
+  MCurlResponse &setHeader(Header &&header) {
+    header_ = std::move(header);
+    return *this;
+  }
+
+  virtual std::shared_ptr<MCurlResponseBody> body() const { return body_; };
+
+  virtual void setBody(std::shared_ptr<MCurlResponseBody> body) {
+    body_ = body;
+  }
+
+protected:
+  std::shared_ptr<MCurlResponseBody> body_ = nullptr;
+};
+
 } // namespace Http
 } // namespace Darabonba
-
 #endif

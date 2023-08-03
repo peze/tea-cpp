@@ -1,6 +1,8 @@
 #ifndef DARABONBA_MODEL_H_
 #define DARABONBA_MODEL_H_
+
 #include <darabonba/Type.hpp>
+#include <regex>
 #include <type_traits>
 
 namespace Darabonba {
@@ -69,6 +71,63 @@ namespace Darabonba {
 #define DARABONBA_SET_RVALUE(attr, value)                                      \
   this->attr = std::move(value);                                               \
   return *this;
+
+#define DARABONBA_VALIDATE_REQUIRED(attr)                                      \
+  if (this->attr == nullptr) {                                                 \
+    throw Darabonba::ValidateException("RequiredValidateError",                \
+                                       #attr " is required.");                 \
+  }
+
+#define DARABONBA_VALIDATE_MAX_LENGTH(attr, length)                            \
+  if (this->attr != nullptr) {                                                 \
+    auto size = this->attr->size();                                            \
+    if (size > (length)) {                                                     \
+      throw Darabonba::ValidateException("MaxLengthValidateError",             \
+                                         #attr " is exceed max-length: " +     \
+                                             std::to_string((length)));        \
+    }                                                                          \
+  }
+
+#define DARABONBA_VALIDATE_MIN_LENGTH(attr, length)                            \
+  if (this->attr != nullptr) {                                                 \
+    auto size = this->attr->size();                                            \
+    if (size < (length)) {                                                     \
+      throw Darabonba::ValidateException("MaxLengthValidateError",             \
+                                         #attr " is exceed max-length: " +     \
+                                             std::to_string((length)));        \
+    }                                                                          \
+  }
+
+#define DARABONBA_VALIDATE_MAXIMUM(attr, val)                                  \
+  if (this->attr != nullptr) {                                                 \
+    const auto &value = this->attr;                                            \
+    if (value > (val)) {                                                       \
+      throw Darabonba::ValidateException("MaximumValidateError",               \
+                                         #attr " cannot be greater than " +    \
+                                             std::to_string((val)));           \
+    }                                                                          \
+  }
+
+#define DARABONBA_VALIDATE_MINIMUM(obj, attr, val)                             \
+  if (this->attr != nullptr) {                                                 \
+    const auto &value = *(this->attr);                                         \
+    if (value < (val)) {                                                       \
+      throw Darabonba::ValidateException("MinimumValidateError",               \
+                                         #attr " cannot be less than " +       \
+                                             std::to_string((val)));           \
+    }                                                                          \
+  }
+
+#define DARABONBA_VALIDATE_PATTERN(obj, attr, val)                             \
+  if (this->attr != nullptr) {                                                 \
+    const auto &value = *(this->attr);                                         \
+    std::regex pattern(val, std::regex::icase);                                \
+    if (!regex_search(value, pattern)) {                                       \
+      throw Darabonba::ValidateException("PatternValidateError",               \
+                                         #attr " is not match " +              \
+                                             std::to_string((val)));           \
+    }                                                                          \
+  }
 
 class Model {
 public:

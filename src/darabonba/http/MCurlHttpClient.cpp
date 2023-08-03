@@ -1,64 +1,63 @@
 #include <darabonba/http/Curl.hpp>
 #include <darabonba/http/MCurlHttpClient.hpp>
-#include <darabonba/http/MCurlResponseBody.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <mutex>
 
 namespace Darabonba {
 namespace Http {
 
-std::future<std::shared_ptr<Response>>
+std::future<std::shared_ptr<MCurlResponse>>
 MCurlHttpClient::makeRequest(const Request &request,
-                             const RuntimeOptions &options) {
+                             const Darabonba::Json &options) {
   if (!running_ || !mCurl_) {
-    std::promise<std::shared_ptr<Response>> promise;
+    std::promise<std::shared_ptr<MCurlResponse>> promise;
     promise.set_value(nullptr);
     return promise.get_future();
   }
   auto easyHandle = curl_easy_init();
   if (!easyHandle) {
-    std::promise<std::shared_ptr<Response>> promise;
+    std::promise<std::shared_ptr<MCurlResponse>> promise;
     promise.set_value(nullptr);
     return promise.get_future();
   }
 
   // process the runtime options
   // ssl
-  if (options.ignoreSSL()) {
-    curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYHOST, 2L);
-  } else {
+  if (options.value("ignoreSSL", false)) {
     curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYHOST, 0L);
+  } else {
+    curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(easyHandle, CURLOPT_SSL_VERIFYHOST, 1L);
   }
   // timeout
-  long connectTimeout = options.connectTimeout();
+  auto connectTimeout = options.value("connectTimeout", 5000L);
   if (connectTimeout > 0) {
     curl_easy_setopt(easyHandle, CURLOPT_CONNECTTIMEOUT_MS, connectTimeout);
   }
-  long readTimeout = options.readTimeout();
+  long readTimeout = options.value("readTimeout", 0L);
   if (readTimeout > 0) {
     curl_easy_setopt(easyHandle, CURLOPT_TIMEOUT_MS, readTimeout);
   }
   // set proxy
-  // todo sock5
-  std::string httpProxy = options.httpProxy();
+  // TODO: sock5
+  std::string httpProxy = options.value("httpProxy", "");
   if (!httpProxy.empty()) {
     curl_easy_setopt(easyHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
     Curl::setCurlProxy(easyHandle, httpProxy);
   }
-  std::string httpsProxy = options.httpsProxy();
+  std::string httpsProxy = options.value("httpsProxy", "");
   if (!httpsProxy.empty()) {
     curl_easy_setopt(easyHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
     Curl::setCurlProxy(easyHandle, httpsProxy);
   }
-  std::string noProxy = options.noProxy();
+  std::string noProxy = options.value("noProxy", "");
   if (!noProxy.empty()) {
     curl_easy_setopt(easyHandle, CURLOPT_NOPROXY, noProxy.c_str());
   }
 
   // set request method
-  curl_easy_setopt(easyHandle, CURLOPT_CUSTOMREQUEST,
-                   request.strMethod().c_str());
+  curl_easy_setopt(easyHandle, CURLOPT_CUSTOMREQUEST, request.method().c_str());
   // set request url
   curl_easy_setopt(easyHandle, CURLOPT_URL,
                    static_cast<std::string>(request.url()).c_str());
@@ -71,15 +70,17 @@ MCurlHttpClient::makeRequest(const Request &request,
       .easyHandle = easyHandle,
       .reqHeader = Curl::setCurlHeader(easyHandle, request.header()),
       .reqBody = request.body(),
-      .resp = std::make_shared<Response>()});
+      .resp = std::make_shared<MCurlResponse>(),
+      .promise = std::unique_ptr<std::promise<std::shared_ptr<MCurlResponse>>>(
+          new std::promise<std::shared_ptr<MCurlResponse>>())});
 
   // set response body
-  // todo: custom response body by user
-  auto body = new MCurlResponseBody();
+  // TODO:: custom response body by user
+  auto body = std::make_shared<MCurlResponseBody>();
   body->easyHandle_ = easyHandle;
   body->client_ = this;
   auto &resp = curlStorage->resp;
-  resp->setBody(std::shared_ptr<IOStream>(body));
+  resp->setBody(body);
 
   // set the storage of response header
   curl_easy_setopt(easyHandle, CURLOPT_HEADERDATA, &(resp->header()));
@@ -90,7 +91,7 @@ MCurlHttpClient::makeRequest(const Request &request,
   // set how to receive response body
   curl_easy_setopt(easyHandle, CURLOPT_WRITEFUNCTION, recvBody);
 
-  auto ret = curlStorage->promise.get_future();
+  auto ret = curlStorage->promise->get_future();
   {
     std::lock_guard<Lock::SpinLock> guard(reqLock_);
     reqQueue_.emplace_back(std::move(curlStorage));
@@ -126,14 +127,14 @@ void MCurlHttpClient::perform() {
         continueReadingQueueSize_ = 0;
       }
       for (auto easyHandle : continueReadingQueue) {
-        // todo 加一个判断是否为当前所管理的 easy handle
+        // TODO: 加一个判断是否为当前所管理的 easy handle
         // set continue reading
         curl_easy_pause(easyHandle, CURLPAUSE_CONT);
       }
     }
     auto code = curl_multi_poll(mCurl_, nullptr, 0, WAIT_MS, nullptr);
     if (code != CURLM_OK) {
-      // todo: handle error
+      // TODO:: handle error
       continue;
     }
     int running_handles;
@@ -222,17 +223,16 @@ bool MCurlHttpClient::setResponseReady(CurlStorage *curlStorage) {
                     &responseCode);
   curlStorage->resp->setStatusCode(responseCode);
   // set ready
-  static_cast<MCurlResponseBody *>(curlStorage->resp->body().get())->ready_ =
-      true;
-  curlStorage->promise.set_value(curlStorage->resp);
+  curlStorage->resp->body()->ready_ = true;
+  curlStorage->promise->set_value(curlStorage->resp);
+  curlStorage->promise = nullptr;
   return true;
 }
 
 size_t MCurlHttpClient::recvBody(char *buffer, size_t size, size_t nmemb,
                                  void *userdata) {
   auto curlStorage = static_cast<CurlStorage *>(userdata);
-  auto body =
-      dynamic_cast<MCurlResponseBody *>(curlStorage->resp->body().get());
+  auto body = curlStorage->resp->body();
   if (!body)
     return 0;
   if (body->readableSize() >= body->maxSize()) {

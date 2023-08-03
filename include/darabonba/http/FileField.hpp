@@ -3,9 +3,9 @@
 
 #include <curl/curl.h>
 #include <darabonba/Core.hpp>
-#include <darabonba/Exception.hpp>
 #include <darabonba/Model.hpp>
 #include <darabonba/Stream.hpp>
+#include <darabonba/Type.hpp>
 #include <memory>
 #include <string>
 #include <vector>

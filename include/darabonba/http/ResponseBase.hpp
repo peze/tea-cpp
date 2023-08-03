@@ -24,7 +24,7 @@ public:
     SWITCHING_PROTOCOLS = 101,
     PROCESSING = 102, // WebDAV
     EARLY_HINTS = 103,
-    // Successful responses (
+    // Successful responses
     OK = 200,
     CREATED = 201,
     ACCEPTED = 202,
@@ -91,7 +91,7 @@ public:
   ResponseBase() = default;
   virtual ~ResponseBase() = default;
 
-  std::string header(const std::string key) const {
+  std::string header(const std::string &key) const {
     auto it = header_.find(key);
     if (it != header_.end())
       return it->second;
@@ -99,13 +99,24 @@ public:
   }
   const Header &header() const { return header_; }
   Header &header() { return header_; }
+  ResponseBase &setHeader(const Header &header) {
+    header_ = header;
+    return *this;
+  }
+  ResponseBase &setHeader(Header &&header) {
+    header_ = std::move(header);
+    return *this;
+  }
 
-  long statusCode() const { return statusCode_; };
-  void setStatusCode(long statusCode) { statusCode_ = statusCode; }
+  int64_t statusCode() const { return statusCode_; };
+
+  ResponseBase &setStatusCode(int64_t statusCode) {
+    statusCode_ = statusCode;
+    return *this;
+  }
 
 protected:
-  // todo int64
-  mutable long statusCode_ = StatusCode::INVALID_CODE;
+  mutable int64_t statusCode_ = StatusCode::INVALID_CODE;
   Header header_;
 };
 

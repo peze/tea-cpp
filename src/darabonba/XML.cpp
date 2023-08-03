@@ -88,7 +88,7 @@ static Darabonba::Json xmlToJson(const void *data, size_t size) {
 }
 
 namespace Darabonba {
-Json parseXml(const std::string &body, const Http::Response *resp) {
+Json parseXml(const std::string &body, const Http::MCurlResponse *resp) {
   return xmlToJson(reinterpret_cast<const void *>(body.c_str()), body.size());
 }
 

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <darabonba/Type.hpp>
 #include <functional>
 #include <iterator>
 #include <stdexcept>
@@ -37,7 +38,7 @@ public:
   static const std::string &get(const std::vector<std::string> &raw,
                                 int index) {
     if (index < 0 || static_cast<size_t>(index) >= raw.size())
-      throw std::out_of_range("Invalid index.");
+      throw Darabonba::Exception("Invalid index.");
     return raw[index];
   }
 

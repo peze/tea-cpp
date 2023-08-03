@@ -2,9 +2,8 @@
 #include <condition_variable>
 #include <darabonba/RuntimeOptions.hpp>
 #include <darabonba/http/Curl.hpp>
-#include <darabonba/http/MCurlResponseBody.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <darabonba/http/Request.hpp>
-#include <darabonba/http/Response.hpp>
 #include <darabonba/lock/SpinLock.hpp>
 #include <future>
 #include <list>
@@ -16,6 +15,7 @@
 namespace Darabonba {
 namespace Http {
 
+class MCurlResponse;
 class MCurlResponseBody;
 
 class MCurlHttpClient {
@@ -25,14 +25,14 @@ public:
   MCurlHttpClient() : mCurl_(curl_multi_init()) {}
   ~MCurlHttpClient() {
     stop();
-    // todo 这里还是等所有跑完
+    // TODO: 这里还是等所有跑完
     close();
     curl_multi_cleanup(mCurl_);
     mCurl_ = nullptr;
   }
 
-  std::future<std::shared_ptr<Response>>
-  makeRequest(const Request &request, const RuntimeOptions &options = {});
+  std::future<std::shared_ptr<MCurlResponse>>
+  makeRequest(const Request &request, const Darabonba::Json &options = {});
 
   /**
    * @brief Start a background thread to handle network IO
@@ -56,9 +56,9 @@ protected:
     // request header
     curl_slist *reqHeader;
     // http response
-    std::shared_ptr<Response> resp;
+    std::shared_ptr<MCurlResponse> resp;
 
-    std::promise<std::shared_ptr<Response>> promise;
+    std::unique_ptr<std::promise<std::shared_ptr<MCurlResponse>>> promise;
   };
 
   void perform();
@@ -92,7 +92,7 @@ protected:
 
   std::unordered_map<CURL *, std::unique_ptr<CurlStorage>> runningCurl_;
 
-  // todo
+  // TODO:
   std::condition_variable stopCV_;
   std::atomic<bool> stop_ = {false};
 };

@@ -66,49 +66,37 @@ string Core::uuid() {
 }
 
 int Core::getBackoffTime(const Json &backoff, int retryTimes) {
-  if (backoff.empty()) {
+  if (backoff.is_null() || backoff.empty()) {
     return 0;
   }
-  int rt = !retryTimes ? 0 : retryTimes;
+  string policy = backoff.value("policy", "no");
   int backOffTime = 0;
-  string policy = "no";
-  if (backoff.find("policy") != backoff.end()) {
-    policy = backoff["policy"].get<string>();
-  }
   if (policy == "no") {
     return backOffTime;
   }
 
-  if (backoff.find("period") != backoff.end()) {
-    int period = backoff["period"].get<int>();
-    backOffTime = period;
-    if (backOffTime <= 0) {
-      return rt;
-    }
+  backOffTime = backoff.value("period", backOffTime);
+  if (backOffTime <= 0) {
+    return retryTimes;
   }
   return backOffTime;
 }
 
 bool Core::allowRetry(const Json &retry, int retryTimes) {
-  if (retry.empty()) {
+  if (retryTimes == 0)
+    return true;
+  if (retry.is_null() || retry.empty()) {
     return false;
   }
-  int maxAttempts = 0;
-  if (retry.find("maxAttempts") != retry.end()) {
-    maxAttempts = retry["maxAttempts"].get<int>();
+  bool retryable = retry.value("retryable", false);
+  if (retryable) {
+    int maxAttempts = retry.value("maxAttempts", 0);
     return maxAttempts >= retryTimes;
   }
   return false;
 }
 
-Json Core::merge(const Json &jf, const Json &jb) {
-  Json ret;
-  ret.merge_patch(jf);
-  ret.merge_patch(jb);
-  return ret;
-}
-
-std::future<std::shared_ptr<Http::Response>>
+std::future<std::shared_ptr<Http::MCurlResponse>>
 Core::doAction(const Http::Request &request, const RuntimeOptions &runtime) {
   static auto client = []() {
     curl_global_init(CURL_GLOBAL_ALL);

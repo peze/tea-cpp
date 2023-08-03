@@ -33,12 +33,24 @@ public:
   const URL &url() const { return url_; }
   URL &url() { return url_; }
 
-  Method method() const { return method_; };
-  std::string strMethod() const;
-  void setMethod(Method method) { method_ = method; };
+  std::string method() const;
+
+  Request &setMethod(Method method) {
+    method_ = method;
+    return *this;
+  };
+  Request &setMethod(const std::string &method);
 
   const Query &query() const { return url_.query(); }
   Query &query() { return url_.query(); }
+  Request &setQuery(const Query &query) {
+    url_.setQuery(query);
+    return *this;
+  }
+  Request &setQuery(Query &&query) {
+    url_.setQuery(std::move(query));
+    return *this;
+  }
 
   std::string header(const std::string key) const {
     auto it = header_.find(key);
@@ -48,16 +60,31 @@ public:
   }
   const Header &header() const { return header_; };
   Header &header() { return header_; }
+  Request &setHeader(const Header &header) {
+    header_ = header;
+    return *this;
+  }
+  Request &setHeader(Header &&header) {
+    header_ = std::move(header);
+    return *this;
+  }
 
   std::shared_ptr<IStream> body() const { return body_; }
-  void setBody(std::shared_ptr<IStream> body) { body_ = body; }
+  Request &setBody(std::shared_ptr<IStream> body) {
+    body_ = body;
+    return *this;
+  }
+  template <typename T> Request &setBody(T &&obj) {
+    auto p = new ISStream(std::forward<T>(obj));
+    body_ = std::shared_ptr<IStream>(p);
+    return *this;
+  }
 
 protected:
   URL url_;
   Method method_ = Method::GET;
   Header header_;
   std::shared_ptr<IStream> body_;
-  // stringstream, fstream
 };
 
 } // namespace Http

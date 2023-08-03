@@ -11,8 +11,12 @@
 namespace Darabonba {
 class Env {
 public:
-  static std::string getEnv(const std::string &key) {
-    return std::getenv(key.c_str());
+  static std::string getEnv(const std::string &key,
+                            const std::string &defaultVal = "") {
+    auto ret = std::getenv(key.c_str());
+    if (ret == nullptr)
+      return defaultVal;
+    return ret;
   }
   /**
    * @ref https://stackoverflow.com/questions/54279450/putenv-warning-with-c

@@ -8,7 +8,7 @@
 
 // namespace Http {
 
-// void MCurlResponse::Body::write(char *ptr, size_t size) {
+// void MCurlResponseBody::write(char *ptr, size_t size) {
 //   std::stringstream::write(ptr, size);
 //   size_ += size;
 //   if (size_ > MAX_SIZE) {
@@ -16,7 +16,7 @@
 //   }
 // }
 
-// size_t MCurlResponse::Body::readFromCurl() {
+// size_t MCurlResponseBody::readFromCurl() {
 //   flow_ = true;
 //   // clear
 //   std::stringstream::str("");

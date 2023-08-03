@@ -1,47 +1,74 @@
-// #include <darabonba/Exception.hpp>
-// #include <darabonba/http/MCurlResponse.hpp>
-// #include <string>
+#include <darabonba/Type.hpp>
+#include <darabonba/http/MCurlHttpClient.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
+#include <mutex>
+#include <string>
 
-// using std::string;
+using std::string;
 
-// namespace Darabonba {
-// namespace Http {
+namespace Darabonba {
+namespace Http {
 
-// size_t MCurlResponse::Body::readFromCurl() {
-//   flow_ = true;
-//   std::stringstream::str("");
-//   size_ = 0;
-//   curl_easy_pause(curl_, CURLPAUSE_CONT);
-//   while (true) {
-//     if (!flow_ || size_ > 0) {
-//       break;
-//     }
-//     const CURLMsg *msg;
-//     int msgs_in_queue;
-//     while ((msg = curl_multi_info_read(mcurl_, &msgs_in_queue)) != NULL) {
-//       if (msg->msg == CURLMSG_DONE) {
-//         if (msg->easy_handle == curl_)
-//           return 0;
-//       }
-//     }
-//     int running_handles;
-//     CURLMcode mcode = curl_multi_perform(mcurl_, &running_handles);
-//     if (mcode != CURLM_OK && mcode != CURLM_CALL_MULTI_PERFORM) {
-//       string message =
-//           string("curl failed, code_") + std::to_string((int)mcode);
-//       throw RetryableException(
-//           {{"code", "DaraRequestError"}, {"message", message}});
-//     }
-//   }
-//   return size_;
-// }
+void MCurlResponseBody::waitForDone() {
+  if (done_)
+    return;
+  if (maxSize_ != std::numeric_limits<size_t>::max()) {
+    maxSize_ = std::numeric_limits<size_t>::max();
+    client_->addContinueReadingHandle(easyHandle_);
+  }
+  std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
+  doneCV_.wait(lock, [this]() -> bool { return done_; });
+  client_ = nullptr;
+  easyHandle_ = nullptr;
+}
 
-// void MCurlResponse::Body::write(char *ptr, size_t size) {
-//   std::stringstream::write(ptr, size);
-//   size_ += size;
-//   if (size_ > MAX_SIZE) {
-//     flow_ = false;
-//   }
-// }
-// } // namespace Http
-// } // namespace Darabonba
+size_t MCurlResponseBody::read(char *buffer, size_t expectSize) {
+  if (done_ && readableSize_ == 0)
+    return 0;
+  size_t realSize = 0;
+  do {
+    realSize = std::min({expectSize, readableSize_.load(), maxSize_.load()});
+    if (realSize != 0) {
+      {
+        std::lock_guard<Lock::SpinLock> lock(bufferlock_);
+        buffer_.read(buffer, realSize);
+      }
+      readableSize_ -= realSize;
+      return realSize;
+    }
+
+    if (done_) {
+      client_ = nullptr;
+      easyHandle_ = nullptr;
+      return 0;
+    }
+    // blocking wait
+    fetch();
+    std::mutex mutex;
+    std::unique_lock<std::mutex> lock(mutex);
+    streamCV_.wait(lock,
+                   [this]() -> bool { return done_ || readableSize_ > 0; });
+  } while (realSize == 0);
+
+  return realSize;
+}
+
+bool MCurlResponseBody::fetch() {
+  if (!easyHandle_ || !client_)
+    return false;
+  client_->addContinueReadingHandle(easyHandle_);
+  return true;
+}
+
+size_t MCurlResponseBody::write(char *buffer, size_t expectSize) {
+  {
+    std::lock_guard<Lock::SpinLock> lock(bufferlock_);
+    buffer_.write(buffer, expectSize);
+  }
+  readableSize_ += expectSize;
+  return expectSize;
+}
+
+} // namespace Http
+} // namespace Darabonba

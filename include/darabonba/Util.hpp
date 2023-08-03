@@ -4,9 +4,9 @@
 #include <chrono>
 #include <cstdint>
 #include <darabonba/Core.hpp>
-#include <darabonba/Exception.hpp>
 #include <darabonba/Stream.hpp>
-#include <darabonba/http/Response.hpp>
+#include <darabonba/Type.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -37,7 +37,10 @@ public:
     return real.empty() ? defaultVal : real;
   }
 
-  template <typename T> static T defaultNumber(T real, T defaultVal) {
+  static int64_t defaultNumber(int64_t real, int64_t defaultVal) {
+    return real ? real : defaultVal;
+  }
+  static uint64_t defaultNumber(uint64_t real, uint64_t defaultVal) {
     return real ? real : defaultVal;
   }
 
@@ -56,7 +59,9 @@ public:
   static Json toMap(const Model &in) { return in.toMap(); }
 
   static Bytes toBytes(const std::string &val) {
-    return Bytes(val.begin(), val.end());
+    Bytes b;
+    b.assign(val.begin(), val.end());
+    return b;
   }
 
   static std::string toString(const Bytes &val) {
@@ -124,11 +129,11 @@ public:
 
   static int64_t assertAsNumber(const Json &value);
 
-  // todo: std::map, std::unordered_map, Daraboba::Model
-  // todo: 有时候传进来的 http body，也就是istream 来行
+  // TODO:: std::map, std::unordered_map, Daraboba::Model
+  // TODO:: 有时候传进来的 http body，也就是istream 来行
   static Json assertAsMap(const Json &value);
 
-  // todo
+  // TODO:
   static IStream *assertAsReadable(Stream *value);
 
   static bool is2xx(int64_t code) { return 200 <= code && code < 300; }

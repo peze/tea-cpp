@@ -82,7 +82,8 @@ public:
                       md.size()) <= 0) {
       return {};
     }
-    Bytes ret(resLen);
+    Bytes ret;
+    ret.resize(resLen);
     if (EVP_PKEY_sign(ctx_, reinterpret_cast<unsigned char *>(&ret[0]), &resLen,
                       reinterpret_cast<const unsigned char *>(&md[0]),
                       md.size()) <= 0) {
