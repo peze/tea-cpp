@@ -11,8 +11,7 @@
 namespace Darabonba {
 class XML {
 public:
-  static Json parseXml(const std::string &body,
-                       const Http::MCurlResponse *resp = nullptr);
+  static Json parseXml(const std::string &body, const void *resp = nullptr);
 
   static std::string toXML(const Json &body);
 

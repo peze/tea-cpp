@@ -1,4 +1,7 @@
+#include <darabonba/Stream.hpp>
+#include <darabonba/Type.hpp>
 #include <darabonba/Util.hpp>
+#include <darabonba/http/FileField.hpp>
 #include <darabonba/http/MCurlResponse.hpp>
 #include <darabonba/http/Query.hpp>
 #include <fstream>
@@ -27,6 +30,7 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
     basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
+  // Darabonba::F
   // Http::MCurlResponseBody
   auto respBody = std::dynamic_pointer_cast<Http::MCurlResponseBody>(raw);
   if (respBody) {
@@ -37,7 +41,22 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
     respBody->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
+  auto fileFormStream = std::dynamic_pointer_cast<Http::FileFormStream>(raw);
+  if (fileFormStream) {
+    Bytes ret;
+    for (const auto &fileForm : *fileFormStream) {
+      std::ifstream ifs(fileForm.content(), std::ios::binary);
+      if (ifs.is_open()) {
+        ret.insert(ret.end(), std::istreambuf_iterator<char>(ifs),
+                   std::istreambuf_iterator<char>());
+      } else {
+        throw Exception("Failed to open file: " + fileForm.content() + "\n");
+      }
+    }
+    return ret;
+  }
   // TODO: custom IStream
+
   return {};
 }
 
@@ -64,6 +83,20 @@ string Util::readAsString(std::shared_ptr<IStream> raw) {
     string ret;
     ret.resize(respBody->readableSize());
     respBody->read(reinterpret_cast<char *>(&ret[0]), size);
+    return ret;
+  }
+  auto fileFormStream = std::dynamic_pointer_cast<Http::FileFormStream>(raw);
+  if (fileFormStream) {
+    string ret;
+    for (const auto &fileForm : *fileFormStream) {
+      std::ifstream ifs(fileForm.content(), std::ios::binary);
+      if (ifs.is_open()) {
+        ret.insert(ret.end(), std::istreambuf_iterator<char>(ifs),
+                   std::istreambuf_iterator<char>());
+      } else {
+        throw Exception("Failed to open file: " + fileForm.content() + "\n");
+      }
+    }
     return ret;
   }
   // TODO: custom IStream

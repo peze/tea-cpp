@@ -35,7 +35,7 @@ int64_t Util::assertAsNumber(const Json &value) {
   return value.get<int64_t>();
 }
 
-Json Util::assertAsMap(const Json &value) {
+const Json &Util::assertAsMap(const Json &value) {
   if (!value.is_object()) {
     throw Exception("value is not a object");
   }

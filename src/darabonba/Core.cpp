@@ -1,6 +1,5 @@
-#include <darabonba/Core.hpp>
-
 #include <chrono>
+#include <darabonba/Core.hpp>
 #include <darabonba/http/MCurlHttpClient.hpp>
 #include <fstream>
 #include <sstream>
@@ -14,6 +13,7 @@
 #endif
 
 using std::string;
+
 namespace Darabonba {
 
 struct Deleter {
@@ -97,7 +97,7 @@ bool Core::allowRetry(const Json &retry, int retryTimes) {
 }
 
 std::future<std::shared_ptr<Http::MCurlResponse>>
-Core::doAction(const Http::Request &request, const RuntimeOptions &runtime) {
+Core::doAction(Http::Request &request, const Darabonba::Json &runtime) {
   static auto client = []() {
     curl_global_init(CURL_GLOBAL_ALL);
     auto ret = std::unique_ptr<Http::MCurlHttpClient, Deleter>(
@@ -105,6 +105,18 @@ Core::doAction(const Http::Request &request, const RuntimeOptions &runtime) {
     ret->start();
     return ret;
   }();
+  // modfiy the request url
+  auto &header = request.header();
+  auto &url = request.url();
+  if (url.host().empty()) {
+    auto it = header.find("host");
+    if (it != header.end()) {
+      url.setHost(it->second);
+    }
+  }
+  if (url.scheme().empty()) {
+    url.setScheme("https");
+  }
   return client->makeRequest(request, runtime);
 }
 

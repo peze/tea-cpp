@@ -165,6 +165,14 @@ void MCurlHttpClient::perform() {
       }
     }
   }
+  // close the existing network connections.
+  for (auto &p : runningCurl_) {
+    curl_slist_free_all(p.second->reqHeader);
+    curl_multi_remove_handle(mCurl_, p.first);
+    curl_easy_cleanup(p.first);
+  }
+  runningCurl_.clear();
+  stopCV_.notify_all();
 }
 
 bool MCurlHttpClient::start() {
@@ -179,23 +187,21 @@ bool MCurlHttpClient::stop() {
   if (!running_)
     return false;
   running_ = false;
-  // stopCV_.wait();
+  std::unique_lock<std::mutex> lock(stopMutex_);
+  stopCV_.wait(lock, [this]() { return true; });
   return true;
 }
 
-void MCurlHttpClient::close() {
+void MCurlHttpClient::clearQueue() {
+  std::lock(reqLock_, continueReadingLock_);
   while (!reqQueue_.empty()) {
     auto storage = std::move(reqQueue_.front());
     reqQueue_.pop_front();
     curl_slist_free_all(storage->reqHeader);
     curl_easy_cleanup(storage->easyHandle);
   }
-  for (auto &p : runningCurl_) {
-    curl_slist_free_all(p.second->reqHeader);
-    curl_multi_remove_handle(mCurl_, p.first);
-    curl_easy_cleanup(p.first);
-  }
-  runningCurl_.clear();
+  reqQueue_.clear();
+  continueReadingQueue_.clear();
 }
 
 bool MCurlHttpClient::addContinueReadingHandle(CURL *easyHandle) {

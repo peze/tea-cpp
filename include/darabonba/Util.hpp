@@ -129,9 +129,9 @@ public:
 
   static int64_t assertAsNumber(const Json &value);
 
-  // TODO:: std::map, std::unordered_map, Daraboba::Model
-  // TODO:: 有时候传进来的 http body，也就是istream 来行
-  static Json assertAsMap(const Json &value);
+  // TODO: std::map, std::unordered_map, Daraboba::Model
+  // TODO: stream
+  static const Json &assertAsMap(const Json &value);
 
   // TODO:
   static IStream *assertAsReadable(Stream *value);

@@ -12,9 +12,11 @@
 namespace Darabonba {
 class Core {
 public:
+  /**
+   * @note This function will the Http::Request
+   */
   static std::future<std::shared_ptr<Http::MCurlResponse>>
-  doAction(const Http::Request &request,
-           const RuntimeOptions &runtime = RuntimeOptions());
+  doAction(Http::Request &request, const Darabonba::Json &runtime = {});
   static bool allowRetry(const Json &retry, int retryTimes);
   static int getBackoffTime(const Json &backoff, int retryTimes);
   static void sleep(int seconds);

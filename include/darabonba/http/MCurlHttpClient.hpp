@@ -25,8 +25,7 @@ public:
   MCurlHttpClient() : mCurl_(curl_multi_init()) {}
   ~MCurlHttpClient() {
     stop();
-    // TODO: 这里还是等所有跑完
-    close();
+    clearQueue();
     curl_multi_cleanup(mCurl_);
     mCurl_ = nullptr;
   }
@@ -41,7 +40,7 @@ public:
 
   /**
    * @brief Stop the backgroud thread.
-   * @note All existing links will be closed.
+   * @note All existing connections will be removed.
    */
   bool stop();
 
@@ -70,11 +69,7 @@ protected:
 
   static bool setResponseReady(CurlStorage *curlStorage);
 
-  /**
-   * @brief
-   * @note This method does not perform any locking.
-   */
-  void close();
+  void clearQueue();
 
   std::thread performThread_;
 
@@ -90,9 +85,12 @@ protected:
 
   CURLM *mCurl_ = nullptr;
 
+  /**
+   * @note runningCurl_ can be accessed in performThread_
+   */
   std::unordered_map<CURL *, std::unique_ptr<CurlStorage>> runningCurl_;
 
-  // TODO:
+  std::mutex stopMutex_;
   std::condition_variable stopCV_;
   std::atomic<bool> stop_ = {false};
 };

@@ -77,12 +77,9 @@ protected:
 
   std::atomic<size_t> readableSize_ = {0};
 
-  // TODO: 用于等待流读写
   std::condition_variable streamCV_;
 
-  // TODO: 暂时使用 ss 来表示，后面使用 ringbuffer 来降低
   Lock::SpinLock bufferlock_;
-  // std::stringstream buffer_;
   Buffer::RingBuffer buffer_;
 
   MCurlHttpClient *client_ = nullptr;
