@@ -129,8 +129,7 @@ public:
 
   static int64_t assertAsNumber(const Json &value);
 
-  // TODO: std::map, std::unordered_map, Daraboba::Model
-  // TODO: stream
+  // TODO: std::map, std::unordered_map, Daraboba::Model, stream
   static const Json &assertAsMap(const Json &value);
 
   // TODO:

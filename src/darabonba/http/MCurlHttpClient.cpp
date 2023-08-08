@@ -127,9 +127,10 @@ void MCurlHttpClient::perform() {
         continueReadingQueueSize_ = 0;
       }
       for (auto easyHandle : continueReadingQueue) {
-        // TODO: 加一个判断是否为当前所管理的 easy handle
-        // set continue reading
-        curl_easy_pause(easyHandle, CURLPAUSE_CONT);
+        if (runningCurl_.count(easyHandle)) {
+          // set continue reading
+          curl_easy_pause(easyHandle, CURLPAUSE_CONT);
+        }
       }
     }
     auto code = curl_multi_poll(mCurl_, nullptr, 0, WAIT_MS, nullptr);
@@ -162,6 +163,8 @@ void MCurlHttpClient::perform() {
         // remove the easy hanle
         curl_multi_remove_handle(mCurl_, easyHandle);
         curl_easy_cleanup(easyHandle);
+      } else {
+        // TODO: handle other case
       }
     }
   }
@@ -187,6 +190,7 @@ bool MCurlHttpClient::stop() {
   if (!running_)
     return false;
   running_ = false;
+  curl_multi_wakeup(mCurl_);
   std::unique_lock<std::mutex> lock(stopMutex_);
   stopCV_.wait(lock, [this]() { return true; });
   return true;

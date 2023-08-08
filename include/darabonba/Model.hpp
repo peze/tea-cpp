@@ -14,6 +14,11 @@ namespace Darabonba {
 
 #define DARABONBA_TO_JSON(key, attr) j[#key] = obj.attr;
 
+#define DARABONBA_ANY_TO_JSON(key, attr)                                       \
+  if (!obj.attr.is_null()) {                                                   \
+    j[#key] = obj.attr;                                                        \
+  }
+
 #define DARABONBA_PTR_FROM_JSON(key, attr)                                     \
   if (j.count(#key)) {                                                         \
     if (j[#key].is_null()) {                                                   \
@@ -22,6 +27,11 @@ namespace Darabonba {
       using Type = std::remove_reference<decltype(*obj.attr)>::type;           \
       obj.attr = std::make_shared<Type>(j[#key].get<Type>());                  \
     }                                                                          \
+  }
+
+#define DARABONBA_ANY_FROM_JSON(key, attr)                                     \
+  if (j.count(#key)) {                                                         \
+    obj.attr = j[#key];                                                        \
   }
 
 #define DARABONBA_FROM_JSON(key, attr)                                         \
