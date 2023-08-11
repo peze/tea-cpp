@@ -30,7 +30,6 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
     basicIStream->read(reinterpret_cast<char *>(&ret[0]), size);
     return ret;
   }
-  // Darabonba::F
   // Http::MCurlResponseBody
   auto respBody = std::dynamic_pointer_cast<Http::MCurlResponseBody>(raw);
   if (respBody) {
@@ -53,6 +52,7 @@ Bytes Util::readAsBytes(std::shared_ptr<IStream> raw) {
         throw Exception("Failed to open file: " + fileForm.content() + "\n");
       }
     }
+    fileFormStream->clear();
     return ret;
   }
   // TODO: custom IStream
@@ -97,6 +97,7 @@ string Util::readAsString(std::shared_ptr<IStream> raw) {
         throw Exception("Failed to open file: " + fileForm.content() + "\n");
       }
     }
+    fileFormStream->clear();
     return ret;
   }
   // TODO: custom IStream

@@ -192,7 +192,7 @@ bool MCurlHttpClient::stop() {
   running_ = false;
   curl_multi_wakeup(mCurl_);
   std::unique_lock<std::mutex> lock(stopMutex_);
-  stopCV_.wait(lock, [this]() { return true; });
+  stopCV_.wait(lock, []() { return true; });
   return true;
 }
 

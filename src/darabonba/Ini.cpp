@@ -160,7 +160,7 @@ bool Ini::has(const std::string &sectionName, const std::string &key) const {
     return (itSec->second).count(key);
 }
 
-std::string Ini::get(const std::string &sectionName, const std::string &key,
+const std::string& Ini::get(const std::string &sectionName, const std::string &key,
                      const std::string &defaultValue) const {
   auto itSec = data_.find(sectionName);
   if (itSec == data_.end())

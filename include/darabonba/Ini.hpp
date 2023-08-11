@@ -26,6 +26,15 @@ public:
       return *this;
     }
 
+    const std::string &get(const std::string &key,
+                           const std::string &defaultVal = "") const {
+      auto it = this->find(key);
+      if (it == this->end()) {
+        return defaultVal;
+      }
+      return it->second;
+    }
+
     const std::string &name() const { return name_; }
 
     Section &setName(const std::string &name) {
@@ -137,8 +146,8 @@ public:
   /**
    * @brief Get the value.
    */
-  std::string get(const std::string &sectionName, const std::string &key,
-                  const std::string &defaultValue = "") const;
+  const std::string &get(const std::string &sectionName, const std::string &key,
+                         const std::string &defaultValue = "") const;
 
 protected:
   /**

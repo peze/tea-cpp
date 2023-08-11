@@ -13,6 +13,9 @@ class String {
 public:
   static std::vector<std::string>
   split(const std::string &raw, const std::string &delim, int limit = -1) {
+    if (delim.empty()) {
+      return {raw};
+    }
     std::vector<std::string> ret;
     std::string::size_type pos = 0;
     int i = 0;
@@ -27,14 +30,14 @@ public:
     if (limit < 0 || i < limit) {
       ret.emplace_back(raw.substr(pos, raw.size() - pos));
     } else {
-      ret.back() += raw.substr(pos, raw.size() - pos);
+      ret.back() += delim + raw.substr(pos, raw.size() - pos);
     }
     return ret;
   }
 
   static std::string replace(const std::string &raw, const std::string &oldStr,
                              const std::string &newStr, int count = -1) {
-    if (oldStr.empty()) {
+    if (oldStr.empty() || raw.empty()) {
       return raw;
     }
     std::string::size_type pos = 0;
@@ -57,6 +60,8 @@ public:
   }
 
   static int count(const std::string &s, const std::string &substr) {
+    if (substr.empty())
+      return 0;
     int count = 0;
     std::string::size_type pos = s.find(substr);
     while (pos != std::string::npos) {
@@ -104,8 +109,9 @@ public:
 
   static std::string subString(const std::string &s,
                                std::string::size_type start,
-                               std::string::size_type end) {
-    return s.substr(start, end - start);
+                               std::string::size_type end = std::string::npos) {
+    return end == std::string::npos ? s.substr(start)
+                                    : s.substr(start, end - start);
   }
 
   static bool equals(const std::string &expect, const std::string &actual) {
