@@ -118,7 +118,7 @@ namespace Darabonba {
     }                                                                          \
   }
 
-#define DARABONBA_VALIDATE_MINIMUM(obj, attr, val)                             \
+#define DARABONBA_VALIDATE_MINIMUM(attr, val)                                  \
   if (this->attr != nullptr) {                                                 \
     const auto &value = *(this->attr);                                         \
     if (value < (val)) {                                                       \
@@ -128,7 +128,7 @@ namespace Darabonba {
     }                                                                          \
   }
 
-#define DARABONBA_VALIDATE_PATTERN(obj, attr, val)                             \
+#define DARABONBA_VALIDATE_PATTERN(attr, val)                                  \
   if (this->attr != nullptr) {                                                 \
     const auto &value = *(this->attr);                                         \
     std::regex pattern(val, std::regex::icase);                                \
