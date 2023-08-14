@@ -20,11 +20,11 @@ namespace Encode {
 class Encoder {
 public:
   static std::string urlEncode(const std::string &raw) {
-    return Darabonba::Http::Query::encode(raw);
+    return Http::Query::encode(raw);
   }
 
   static std::string percentEncode(const std::string &raw) {
-    return Darabonba::Http::Query::encode(raw);
+    return Http::Query::encode(raw);
   }
 
   static std::string pathEncode(const std::string &path) {

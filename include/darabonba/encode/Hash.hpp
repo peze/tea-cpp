@@ -8,8 +8,14 @@
 #include <vector>
 
 namespace Darabonba {
+
+namespace Signature {
+class RSASigner;
+}
+
 namespace Encode {
 class Hash {
+  friend class Signature::RSASigner;
 public:
   Hash(const EVP_MD *type) : ctx_(EVP_MD_CTX_new()) {
     EVP_DigestInit_ex(ctx_, type, nullptr);

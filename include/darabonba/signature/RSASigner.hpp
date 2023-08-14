@@ -9,6 +9,7 @@
 #include <openssl/rsa.h>
 #include <string>
 #include <vector>
+#include <darabonba/Type.hpp>
 
 namespace Darabonba {
 namespace Signature {
@@ -19,17 +20,29 @@ public:
       : hash_(std::move(hash)) {
     BIO *bioKey = BIO_new_mem_buf(privatePemKey, keyLen);
     if (!bioKey) {
-      return;
+      throw Darabonba::Exception("Can't create the memory buffer for private key.");
     }
     PEM_read_bio_PrivateKey(bioKey, &pkey_, nullptr, nullptr);
     if (!pkey_) {
-      return;
+      throw Darabonba::Exception("Can't load the private key");
     }
     ctx_ = EVP_PKEY_CTX_new(pkey_, nullptr);
     if (!ctx_) {
-      return;
+      throw Darabonba::Exception("Can't create the context.");
+    }
+    if(EVP_PKEY_sign_init(ctx_) <= 0) {
+      throw Darabonba::Exception("Can't initialize the context.");
+    }
+    if(EVP_PKEY_CTX_set_rsa_padding(ctx_, RSA_PKCS1_PADDING) <= 0) {
+      throw Darabonba::Exception("Can't set padding.");
+    }
+    auto md = EVP_MD_CTX_get0_md(hash_->ctx_);
+
+    if (EVP_PKEY_CTX_set_signature_md(ctx_, md) <= 0) {
+      throw Darabonba::Exception("Can't set hash method.");
     }
   }
+
   RSASigner(const std::string &privatePemKey,
             std::unique_ptr<Encode::Hash> hash)
       : RSASigner(reinterpret_cast<const void *>(privatePemKey.c_str()),
@@ -39,6 +52,7 @@ public:
   RSASigner(RSASigner &&) = delete;
   RSASigner &operator=(const RSASigner &) = delete;
   RSASigner &operator=(RSASigner &&) = delete;
+
   //   RSASigner(const RSASigner &obj)
   //       : pkey_(EVP_PKEY_dup(obj.pkey_)), ctx_(EVP_PKEY_CTX_dup(obj.ctx_)),
   //         hash_(obj.hash_->clone()) {}
@@ -104,9 +118,9 @@ public:
   }
 
 protected:
-  EVP_PKEY *pkey_;
-  EVP_PKEY_CTX *ctx_;
-  std::unique_ptr<Encode::Hash> hash_;
+  EVP_PKEY *pkey_ = nullptr;
+  EVP_PKEY_CTX *ctx_ = nullptr;
+  std::unique_ptr<Encode::Hash> hash_ = nullptr;
 };
 } // namespace Signature
 } // namespace Darabonba

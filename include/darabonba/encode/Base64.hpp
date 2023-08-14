@@ -33,9 +33,9 @@ public:
       if (first == last) {
         // the higher 6-bits of the 1st byte
         ret.push_back(base64Chars[c1 >> 2]);
-        // the lower 2-bits of the 1st byte, the higher 6-bits of the 2nd byte
+        // the lower 2-bits of the 1st byte, the higher 4-bits of the 2nd byte
         ret.push_back(base64Chars[((c1 & 0x3) << 4) | ((c2 & 0xf0) >> 4)]);
-        // the lower 6-bits of the 2nd byte
+        // the lower 4-bits of the 2nd byte
         ret.push_back(base64Chars[(c2 & 0xf) << 2]);
         // padding
         ret.push_back('=');
@@ -45,9 +45,9 @@ public:
       c3 = *first++;
       // the higher 6-bits of the 1st byte
       ret.push_back(base64Chars[c1 >> 2]);
-      // the lower 2-bits of the 1st byte, the higher 6-bits of the 2nd byte
+      // the lower 2-bits of the 1st byte, the higher 4-bits of the 2nd byte
       ret.push_back(base64Chars[((c1 & 0x3) << 4) | ((c2 & 0xf0) >> 4)]);
-      // the higher 6-bits of the 2nd byte, the lower 2-bits of the 3rd byte
+      // the higher 4-bits of the 2nd byte, the lower 2-bits of the 3rd byte
       ret.push_back(base64Chars[((c2 & 0xf) << 2) | ((c3 & 0xc0) >> 6)]);
       // the lower 6-bits of the 3rd byte
       ret.push_back(base64Chars[c3 & 0x3f]);
@@ -88,6 +88,7 @@ public:
         }
       } else if (c == '=') {
         countOfPadding = 1;
+        ret.pop_back(); // remove the filling char
         break;
       } else {
         throw Darabonba::Exception("Invalid base64 encoded data.");

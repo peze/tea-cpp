@@ -18,7 +18,7 @@ public:
     EVP_DigestSignInit(ctx_, nullptr, type, nullptr, pkey_);
   }
 
-  // TODO:: copy ctor and so on.
+  // TODO: copy ctor and so on.
   Hmac(const Hmac &) = delete;
   Hmac(Hmac &&) = delete;
   Hmac &operator=(const Hmac &) = delete;
