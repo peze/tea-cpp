@@ -37,10 +37,6 @@ public:
 protected:
 };
 
-// OpenApi::Exception = JSON: http body
-// statucode
-// Exception2 = statuscode + exception
-
 } // namespace Darabonba
 
 #endif
